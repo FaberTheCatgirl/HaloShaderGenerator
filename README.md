@@ -4,7 +4,7 @@ Halo Shader Generator
 Halo Shader Generator is a library used by **Universal Tag Editor** and *TagTool* for generating templated shaders
 compatible with Halo Online
 
-![Screenshot](http://raw.github.com/haydntrigg/HaloShaderGenerator/master/doc/images/preview.jpg)
+![Screenshot](http://raw.github.com/FaberTheCatgirl/HaloShaderGenerator/master/doc/images/concept.jpg)
 
 Quick Links
 ---------
