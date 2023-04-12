@@ -282,9 +282,9 @@ namespace HaloShaderGenerator.Shader
                 case ShaderMethods.Misc:
                     return Enum.GetValues(typeof(Misc)).Length;
                 case ShaderMethods.Misc_Attr_Animation:
-                    return Enum.GetValues(typeof(Shared.Misc_Attr_Animation)).Length;
+                    return Enum.GetValues(typeof(Misc_Attr_Animation)).Length;
                 case ShaderMethods.Distortion:
-                    return Enum.GetValues(typeof(Shared.Distortion)).Length;
+                    return Enum.GetValues(typeof(Shared.Distortion)).Length; //Soft Fade and Distortion need to be shared... why?
                 case ShaderMethods.Soft_Fade:
                     return Enum.GetValues(typeof(Shared.Soft_Fade)).Length;
             }

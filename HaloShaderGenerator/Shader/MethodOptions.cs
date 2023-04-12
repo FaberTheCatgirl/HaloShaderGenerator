@@ -49,7 +49,8 @@ namespace HaloShaderGenerator.Shader
         Emblem,
         Scrolling_Cube,
         Scrolling_Texture_Uv,
-        Texture_From_Misc
+        Texture_From_Misc,
+        Scrolling_Cube_Mask
     }
 
     public enum Bump_Mapping
