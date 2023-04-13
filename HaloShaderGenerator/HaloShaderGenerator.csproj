@@ -155,6 +155,7 @@
     <Compile Include="Globals\VertexType.cs" />
     <Compile Include="Water\MethodOptions.cs" />
     <Compile Include="Water\WaterGenerator.cs" />
+    <Compile Include="Wetness\WetnessOptions.cs" />
     <Compile Include="ZOnly\MethodOptions.cs" />
     <Compile Include="ZOnly\ZOnlyGenerator.cs" />
     <EmbeddedResource Include="hlsl\methods\albedo_decal.hlsli" />
