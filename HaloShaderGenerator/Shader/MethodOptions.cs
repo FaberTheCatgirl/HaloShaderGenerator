@@ -60,7 +60,7 @@ namespace HaloShaderGenerator.Shader
         Detail,
         Detail_Masked,
         Detail_Plus_Detail_Masked,
-        detail_plus_unorm //  typo in the shader, not my fault. waiting on a fix from the devs at 343 industries.
+        detail_plus_unorm
     }
 
     public enum Alpha_Test

@@ -83,7 +83,14 @@ namespace HaloShaderGenerator.Halogram
 
     public enum Edge_Fade
     {
-        None,
+        off,
+        on,
         Simple,
+    }
+
+    public enum Soft_Fade
+    {
+        off,
+        on
     }
 }
