@@ -144,6 +144,7 @@ namespace HaloShaderGenerator
                     case "g_sampler_cc0236":
                     case "g_sampler_dd0236":
                     case "g_sampler_c78d78":
+                    case "g_tree_animation_coeff":
                     case "ibr_texture":
                     case "dynamic_environment_map_0":
                     case "dynamic_environment_map_1":
@@ -155,6 +156,8 @@ namespace HaloShaderGenerator
                     case "tex_ripple_buffer_slope_height":
                     case "overlay_map":
                     case "overlay_detail_map":
+                    case "overlay_intensity":
+                    case "overlay_tint":
                     case "meter_map":
                     case "detail_map_a":
                     case "detail_mask_a":
@@ -178,6 +181,80 @@ namespace HaloShaderGenerator
                     case "wave_slope_array":
                     case "watercolor_texture":
                     case "global_shape_texture":
+                    case "wet_material_dim_coefficient":
+                    case "wet_material_dim_tint":
+                    case "wet_sheen_reflection_contribution":
+                    case "wet_sheen_reflection_tint":
+                    case "wet_sheen_thickness":
+                    case "wet_noise_boundary_map":
+                    case "specular_mask_tweak_weight":
+                    case "surface_tilt_tweak_weight":
+                    case "wet_flood_slope_map":
+                    case "ceiling":
+                    case "walls":
+                    case "floors":
+                    case "transform":
+                    case "window_property_map":
+                    case "distance_fade_scale":
+                    case "environment_map_specular_contribution":
+                    case "waterfall_base_mask":
+                    case "waterfall_layer0":
+                    case "waterfall_layer1":
+                    case "waterfall_layer2":
+                    case "transparency_frothy_weight":
+                    case "transparency_base_weight":
+                    case "transparency_bias":
+                    case "interier":
+                    case "mask_threshold":
+                    case "thin_shell_height":
+                    case "wall_map":
+                    case "box_size":
+                    case "fog_factor":
+                    case "fog_top_color":
+                    case "fog_bottom_color":
+                    case "hole_radius":
+                    case "animation_amplitude_horizontal":
+                    case "foliage_translucency":
+                    case "foliage_specular_color":
+                    case "foliage_specular_intensity":
+                    case "foliage_specular_power":
+                    case "fur_hairs_map":
+                    case "fur_tint_map":
+                    case "fur_deep_color":
+                    case "fur_tint_color":
+                    case "fur_intensity":
+                    case "fur_alpha_scale":
+                    case "fur_shear_x":
+                    case "fur_shear_y":
+                    case "fur_fix":
+                    case "layer_depth":
+                    case "layers_of_4":
+                    case "texcoord_aspect_ratio":
+                    case "depth_darken":
+                    case "bump_contrast":
+                    case "bump_randomness":
+                    case "contrast_scale":
+                    case "contrast_offset":
+                    case "distortion_scale":
+                    case "sphere_warp_scale":
+                    case "detail_multiplier_a":
+                    case "fade":
+                    case "stencil_map":
+                    case "palette_v":
+                    case "global_albedo_tint":
+                    case "blend_target_0":
+                    case "blend_target_1":
+                    case "blend_target_2":
+                    case "blend_target_3":
+                    case "blend_offset":
+                    case "blend_slope":
+                    case "blend_max_0":
+                    case "blend_max_1":
+                    case "blend_max_2":
+                    case "blend_max_3":
+                    case "dynamic_material":
+                    case "transition_sharpness":
+                    case "transition_threshold":
                         return ShaderRegisterScope.TextureSampler_Arguments;
                     case "lightprobe_texture_array_xform":
                     case "depth_buffer_xform":
@@ -244,6 +321,81 @@ namespace HaloShaderGenerator
                     case "wave_slope_array_xform":
                     case "watercolor_texture_xform":
                     case "global_shape_texture_xform":
+                    case "wet_material_dim_coefficient_xform":
+				    case "wet_material_dim_tint_xform":
+				    case "wet_sheen_reflection_contribution_xform":
+				    case "wet_sheen_reflection_tint_xform":
+				    case "wet_sheen_thickness_xform":
+				    case "wet_noise_boundary_map_xform":
+				    case "specular_mask_tweak_weight_xform":
+				    case "surface_tilt_tweak_weight_xform":
+				    case "wet_flood_slope_map_xform":
+				    case "ceiling_xform":
+				    case "walls_xform":
+				    case "floors_xform":
+				    case "transform_xform":
+				    case "window_property_map_xform":
+				    case "distance_fade_scale_xform":
+				    case "environment_map_specular_contribution_xform":
+				    case "waterfall_base_mask_xform":
+				    case "waterfall_layer0_xform":
+				    case "waterfall_layer1_xform":
+				    case "waterfall_layer2_xform":
+				    case "transparency_frothy_weight_xform":
+				    case "transparency_base_weight_xform":
+				    case "transparency_bias_xform":
+				    case "interier_xform":
+				    case "mask_threshold_xform":
+				    case "thin_shell_height_xform":
+				    case "wall_map_xform":
+				    case "box_size_xform":
+				    case "fog_factor_xform":
+				    case "fog_top_color_xform":
+				    case "fog_bottom_color_xform":
+				    case "hole_radius_xform":
+				    case "animation_amplitude_horizontal_xform":
+				    case "foliage_translucency_xform":
+				    case "foliage_specular_color_xform":
+				    case "foliage_specular_intensity_xform":
+				    case "foliage_specular_power_xform":
+				    case "fur_hairs_map_xform":
+				    case "fur_tint_map_xform":
+				    case "fur_deep_color_xform":
+				    case "fur_tint_color_xform":
+				    case "fur_intensity_xform":
+				    case "fur_alpha_scale_xform":
+				    case "fur_shear_x_xform":
+				    case "fur_shear_y_xform":
+				    case "fur_fix_xform":
+				    case "layer_depth_xform":
+				    case "layers_of_4_xform":
+				    case "texcoord_aspect_ratio_xform":
+				    case "depth_darken_xform":
+				    case "bump_contrast_xform":
+				    case "bump_randomness_xform":
+				    case "contrast_scale_xform":
+				    case "contrast_offset_xform":
+				    case "distortion_scale_xform":
+				    case "sphere_warp_scale_xform":
+				    case "detail_multiplier_a_xform":
+				    case "fade_xform":
+				    case "stencil_map_xform":
+				    case "palette_v_xform":
+				    case "global_albedo_tint_xform":
+				    case "blend_target_0_xform":
+				    case "blend_target_1_xform":
+				    case "blend_target_2_xform":
+				    case "blend_target_3_xform":
+				    case "blend_offset_xform":
+				    case "blend_slope_xform":
+				    case "blend_max_0_xform":
+				    case "blend_max_1_xform":
+				    case "blend_max_2_xform":
+				    case "blend_max_3_xform":
+				    case "dynamic_material_xform":
+				    case "transition_sharpness_xform":
+				    case "transition_threshold_xform":
+                    //This shit felt like Yandare Simulator Code to write, why does this engine have so manu shaders! - Faber
                         return ShaderRegisterScope.Vector_Arguments;
                     case "g_exposure":
                     case "k_ps_active_camo_factor":
