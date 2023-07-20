@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HaloShaderGenerator.DirectX;
 using HaloShaderGenerator.Generator;
 using HaloShaderGenerator.Globals;
+using HaloShaderGenerator.Water;
 
 namespace HaloShaderGenerator.Decal
 {
@@ -64,51 +65,39 @@ namespace HaloShaderGenerator.Decal
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Albedo>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Blend_Mode>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Render_Pass>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Specular>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Bump_Mapping>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Tinting>());
+            Shared.Blend_Mode sBlendMode = (Shared.Blend_Mode)Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
 
-            //
-            // Convert to shared enum
-            //
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Decal, entryPoint, sBlendMode, 
+                Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, ApplyFixes);
 
-            var sAlbedo = Enum.Parse(typeof(Shared.Albedo), albedo.ToString());
-            var sBlendMode = Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Albedo>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Blend_Mode>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Render_Pass>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Specular>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Bump_Mapping>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Tinting>());
 
-            //
-            // The following code properly names the macros (like in rmdf)
-            //
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("albedo", albedo.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("blend_mode", blend_mode.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("render_pass", render_pass.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("specular", specular.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("bump_mapping", bump_mapping.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("tinting", tinting.ToString().ToLower()));
 
-            // TODO fix
-            //macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", sBlendMode, "blend_type_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_blend_mode", blend_mode, "blend_mode_"));
+            string entryName = entryPoint.ToString().ToLower() + "_ps";
+            switch (entryPoint)
+            {
+                case ShaderStage.Static_Prt_Linear:
+                case ShaderStage.Static_Prt_Quadratic:
+                case ShaderStage.Static_Prt_Ambient:
+                    entryName = "static_prt_ps";
+                    break;
+                case ShaderStage.Dynamic_Light_Cinematic:
+                    entryName = "dynamic_light_cine_ps";
+                    break;
+            }
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_albedo_ps", sAlbedo, "calc_albedo_", "_ps"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_render_pass", render_pass, "render_pass_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_specular", specular, "specular_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_bump_mapping", bump_mapping, "bump_mapping_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_tinting", tinting, "tinting_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Decal, "k_shadertype_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("albedo_arg", sAlbedo, "k_albedo_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type_arg", sBlendMode, "k_blend_mode_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_render_pass_arg", render_pass, "k_decal_render_pass_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_specular_arg", specular, "k_decal_specular_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_bump_mapping_arg", bump_mapping, "k_decal_bump_mapping_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("decal_tinting_arg", tinting, "k_decal_tinting_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("APPLY_HLSL_FIXES", ApplyFixes ? 1 : 0));
-            macros.Add(ShaderGeneratorBase.CreateMacro("DECAL_IS_SIMPLE", DecalIsSimple ? 1 : 0));
-
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"pixl_decal.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
+            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"decal.fx", macros, entryName, "ps_3_0");
 
             return new ShaderGeneratorResult(shaderBytecode);
         }

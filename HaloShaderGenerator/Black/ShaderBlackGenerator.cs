@@ -14,11 +14,26 @@ namespace HaloShaderGenerator.Black
                 return null;
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
 
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"pixl_shader_black.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Black, entryPoint, Shared.Blend_Mode.Opaque, 
+                Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, true);
+
+            string entryName = entryPoint.ToString().ToLower() + "_ps";
+            switch (entryPoint)
+            {
+                case ShaderStage.Static_Prt_Linear:
+                case ShaderStage.Static_Prt_Quadratic:
+                case ShaderStage.Static_Prt_Ambient:
+                    //case ShaderStage.Static_Sh:
+                    entryName = "static_prt_ps";
+                    break;
+                case ShaderStage.Dynamic_Light_Cinematic:
+                    entryName = "dynamic_light_cine_ps";
+                    break;
+
+            }
+
+            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"black.fx", macros, entryName, "ps_3_0");
 
             return new ShaderGeneratorResult(shaderBytecode);
         }

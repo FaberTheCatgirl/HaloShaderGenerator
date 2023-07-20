@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HaloShaderGenerator.DirectX;
 using HaloShaderGenerator.Generator;
 using HaloShaderGenerator.Globals;
+using HaloShaderGenerator.Particle;
 
 namespace HaloShaderGenerator.Screen
 {
@@ -58,39 +59,31 @@ namespace HaloShaderGenerator.Screen
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Warp>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Base>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Overlay_A>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Overlay_B>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Blend_Mode>());
+            Shared.Blend_Mode sBlendMode = (Shared.Blend_Mode)Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
 
-            //
-            // Convert to shared enum
-            //
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Screen, entryPoint, sBlendMode, 
+                Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, ApplyFixes);
 
-            var sBlendMode = Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
+            macros.Add(ShaderGeneratorBase.CreateMacro("warp_type", warp.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateMacro("base_type", _base.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateMacro("overlay_a_type", overlay_a.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateMacro("overlay_b_type", overlay_b.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", blend_mode.ToString().ToLower()));
 
-            //
-            // The following code properly names the macros (like in rmdf)
-            //
+            string entryName = entryPoint.ToString().ToLower() + "_ps";
+            switch (entryPoint)
+            {
+                case ShaderStage.Static_Prt_Linear:
+                case ShaderStage.Static_Prt_Quadratic:
+                case ShaderStage.Static_Prt_Ambient:
+                    entryName = "static_prt_ps";
+                    break;
+                case ShaderStage.Dynamic_Light_Cinematic:
+                    entryName = "dynamic_light_cine_ps";
+                    break;
+            }
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_screen_warp", warp, "calc_screen_warp_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_base", _base, "calc_base_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("overlay_type_a", overlay_a, "overlay_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("overlay_type_b", overlay_b, "overlay_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", sBlendMode, "blend_type_")); 
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Screen, "k_shadertype_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type_arg", sBlendMode, "k_blend_mode_"));
-
-            //macros.Add(ShaderGeneratorBase.CreateMacro("APPLY_HLSL_FIXES", ApplyFixes ? 1 : 0));
-
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"pixl_screen.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
+            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"screen.fx", macros, entryName, "ps_3_0");
 
             return new ShaderGeneratorResult(shaderBytecode);
         }

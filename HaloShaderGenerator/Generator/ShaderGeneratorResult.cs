@@ -522,6 +522,8 @@ namespace HaloShaderGenerator
             var registers = GetRegisters(result);
             var parameters = GetRegisterParameters(result);
 
+            Registers = registers;
+            /*
             foreach (var parameters_kp in parameters)
             {
                 var name = parameters_kp.Key;
@@ -598,6 +600,7 @@ namespace HaloShaderGenerator
                     }
                 }
             }
+            */
         }
     }
 

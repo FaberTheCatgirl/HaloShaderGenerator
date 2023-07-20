@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HaloShaderGenerator.DirectX;
 using HaloShaderGenerator.Generator;
 using HaloShaderGenerator.Globals;
+using HaloShaderGenerator.TemplateGenerator;
 
 namespace HaloShaderGenerator.Halogram
 {
@@ -71,20 +72,6 @@ namespace HaloShaderGenerator.Halogram
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            //macros.Add(new D3D.SHADER_MACRO { Name = "_HALOGRAM_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Albedo>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Self_Illumination>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Blend_Mode>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Misc>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Warp>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Overlay>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Edge_Fade>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Distortion>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Soft_Fade>());
-
             //
             // Convert to shared enum
             //
@@ -93,52 +80,87 @@ namespace HaloShaderGenerator.Halogram
             var sSelfIllumination = Enum.Parse(typeof(Shared.Self_Illumination), self_illumination.ToString());
             var sBlendMode = Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
 
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Halogram, entryPoint, (Shared.Blend_Mode)sBlendMode, 
+                (Shader.Misc)misc, Shared.Alpha_Test.None, ApplyFixes);
+
             //
             // The following code properly names the macros (like in rmdf)
             //
 
             macros.Add(ShaderGeneratorBase.CreateMacro("calc_albedo_ps", sAlbedo, "calc_albedo_", "_ps"));
-            if (albedo == Albedo.Constant_Color)
-                macros.Add(ShaderGeneratorBase.CreateMacro("calc_albedo_vs", sAlbedo, "calc_albedo_", "_vs"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("calc_albedo_vs", sAlbedo, "calc_albedo_", "_vs"));
 
-            switch (self_illumination)
+            switch (sSelfIllumination)
             {
-                case Self_Illumination.Ml_Add_Four_Change_Color:
-                case Self_Illumination.Ml_Add_Five_Change_Color:
-                    // ml_add_four_change_color and ml_add_five_change_color use multilayer_additive ps macro
-                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", Shared.Self_Illumination.Multilayer_Additive, "calc_self_illumination_", "_ps"));
+                case Shared.Self_Illumination.Off:
+                case Shared.Self_Illumination.None:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "none", "calc_self_illumination_", "_ps"));
                     break;
-                case Self_Illumination.Palettized_Plasma_Change_Color:
-                    // Palettized_Plasma_Change_Color use Palettized_Plasma ps code
-                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", Shared.Self_Illumination.Palettized_Plasma, "calc_self_illumination_", "_ps"));
+                case Shared.Self_Illumination._3_Channel_Self_Illum:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "three_channel", "calc_self_illumination_", "_ps"));
+                    break;
+                case Shared.Self_Illumination.From_Diffuse:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "from_albedo", "calc_self_illumination_", "_ps"));
+                    break;
+                case Shared.Self_Illumination.Illum_Detail:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "detail", "calc_self_illumination_", "_ps"));
+                    break;
+                case Shared.Self_Illumination.Self_Illum_Times_Diffuse:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "times_diffuse", "calc_self_illumination_", "_ps"));
+                    break;
+                case Shared.Self_Illumination.Simple_Four_Change_Color:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "simple", "calc_self_illumination_", "_ps"));
+                    break;
+                case Shared.Self_Illumination.Multilayer_Additive:
+                case Shared.Self_Illumination.Ml_Add_Four_Change_Color:
+                case Shared.Self_Illumination.Ml_Add_Five_Change_Color:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "multilayer", "calc_self_illumination_", "_ps"));
                     break;
                 default:
                     macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", sSelfIllumination, "calc_self_illumination_", "_ps"));
                     break;
             }
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", sBlendMode, "blend_type_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_warp", warp, "calc_warp_"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("distort_proc_ps", distortion, "distort_", "_ps"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", blend_mode));
+
+            switch (warp)
+            {
+                case Warp.None:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_parallax_ps", "calc_parallax_off_ps"));
+                    break;
+                case Warp.From_Texture:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_parallax_ps", "calc_warp_from_texture_ps"));
+                    break;
+                case Warp.Parallax_Simple:
+                    macros.Add(ShaderGeneratorBase.CreateMacro("calc_parallax_ps", "calc_parallax_simple_ps"));
+                    break;
+            }
+
             macros.Add(ShaderGeneratorBase.CreateMacro("calc_overlay_ps", overlay, "calc_overlay_", "_ps"));
             macros.Add(ShaderGeneratorBase.CreateMacro("calc_edge_fade_ps", edge_fade, "calc_edge_fade_", "_ps"));
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Halogram, "k_shadertype_"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("material_type", "none"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("envmap_type", "none"));
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("albedo_arg", sAlbedo, "k_albedo_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("self_illumination_arg", sSelfIllumination, "k_self_illumination_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type_arg", sBlendMode, "k_blend_mode_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("misc_arg", misc, "k_misc_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("warp_arg", warp, "k_warp_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("overlay_arg", overlay, "k_overlay_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("edge_fade_arg", edge_fade, "k_edge_fade_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("distortion_arg", distortion, "k_distortion_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("soft_fade_arg", soft_fade, "k_soft_fade_"));
+            string entryName = entryPoint.ToString().ToLower() + "_ps";
+            switch (entryPoint)
+            {
+                case ShaderStage.Static_Prt_Linear:
+                case ShaderStage.Static_Prt_Quadratic:
+                case ShaderStage.Static_Prt_Ambient:
+                    //case ShaderStage.Static_Sh:
+                    entryName = "static_prt_ps";
+                    break;
+                case ShaderStage.Dynamic_Light_Cinematic:
+                    entryName = "dynamic_light_cine_ps";
+                    break;
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("APPLY_HLSL_FIXES", ApplyFixes ? 1 : 0));
-            macros.Add(ShaderGeneratorBase.CreateMacro("_HALOGRAM", 1));
+            }
 
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"pixl_halogram.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
+            macros.Add(ShaderGeneratorBase.CreateMacro("bitmap_rotation", misc == Misc.First_Person_Never_With_rotating_Bitmaps ? "1" : "0"));
+
+            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"halogram.fx", macros, entryName, "ps_3_0");
 
             return new ShaderGeneratorResult(shaderBytecode);
         }
@@ -151,8 +173,6 @@ namespace HaloShaderGenerator.Halogram
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
             macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderType>());
 
             byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"glps_halogram.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
 
@@ -166,22 +186,27 @@ namespace HaloShaderGenerator.Halogram
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<VertexType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_vertex_transform", vertexType, "calc_vertex_transform_", ""));
-            macros.Add(ShaderGeneratorBase.CreateMacro("transform_unknown_vector", vertexType, "transform_unknown_vector_", ""));
-            macros.Add(ShaderGeneratorBase.CreateVertexMacro("input_vertex_format", vertexType));
-            macros.Add(ShaderGeneratorBase.CreateMacro("transform_dominant_light", vertexType, "transform_dominant_light_", ""));
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, Globals.ShaderType.Halogram, entryPoint,
+                Shared.Blend_Mode.Opaque, Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, false, true, vertexType);
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("vertextype", vertexType, "k_vertextype_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Halogram, "shadertype_"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("calc_albedo_ps", Albedo.Default, "calc_albedo_", "_ps"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("calc_albedo_vs", Albedo.Default, "calc_albedo_", "_vs"));
 
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource(@"glvs_halogram.hlsl", macros, $"entry_{entryPoint.ToString().ToLower()}", "vs_3_0");
+            macros.Add(ShaderGeneratorBase.CreateMacro("calc_self_illumination_ps", "calc_self_illumination_none_ps"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("calc_parallax_ps", "calc_parallax_off_ps"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("calc_overlay_ps", "calc_overlay_none_ps"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("calc_edge_fade_ps", "calc_edge_fade_none_ps"));
 
-            return new ShaderGeneratorResult(shaderBytecode);
+            macros.Add(ShaderGeneratorBase.CreateMacro("distort_proc_ps", Shared.Distortion.Off, "distort_", "_ps"));
+            macros.Add(ShaderGeneratorBase.CreateMacro("distort_proc_vs", "distort_nocolor_vs"));
+
+            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", Blend_Mode.Opaque));
+
+            string entryName = TemplateGenerator.TemplateGenerator.GetEntryName(entryPoint, true);
+            string filename = TemplateGenerator.TemplateGenerator.GetSourceFilename(Globals.ShaderType.Halogram);
+            byte[] bytecode = ShaderGeneratorBase.GenerateSource(filename, macros, entryName, "vs_3_0");
+
+            return new ShaderGeneratorResult(bytecode);
         }
 
         public ShaderGeneratorResult GenerateVertexShader(VertexType vertexType, ShaderStage entryPoint)

@@ -23,7 +23,7 @@ namespace HaloShaderGenerator.Globals
         Active_Camo,
         Lightmap_Debug_Mode,
         Static_Per_Vertex_Color,
-        Water_Tesselation,
+        Water_Tessellation,
         Water_Shading,
         Dynamic_Light_Cinematic,
         Z_Only,

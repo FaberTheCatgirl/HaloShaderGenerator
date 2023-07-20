@@ -1,12 +1,10 @@
 ﻿using HaloShaderGenerator.DirectX;
 using HaloShaderGenerator.Globals;
 using HaloShaderGenerator.Shader;
-using HaloShaderGenerator.Black;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using HaloShaderGenerator.Generator;
 
@@ -31,8 +29,8 @@ namespace HaloShaderGenerator
             var distortion = (Shared.Distortion)shaderOptions[10];
             var soft_fade = (Shared.Soft_Fade)shaderOptions[11];
             var gen = new ShaderGenerator(albedo, bump_mapping, alpha_test, specular_mask, material_model, environment_mapping, self_illumination, blend_mode, parallax, misc, distortion, soft_fade);
-            var bytecode = gen.GeneratePixelShader(stage).Bytecode;
-            return D3DCompiler.Disassemble(bytecode);
+            var result = gen.GeneratePixelShader(stage);
+            return D3DCompiler.Disassemble(result.Bytecode);
         }
 
         public override string GenerateSharedPixelShader(ShaderStage stage, int methodIndex, int optionIndex)
@@ -61,7 +59,7 @@ namespace HaloShaderGenerator
             throw new System.NotImplementedException();
         }
 
-        public override string GenerateExplicitVertexShader(ExplicitShader explicitShader, ShaderStage entry)
+        public override string GenerateExplicitVertexShader(ExplicitShader explicitShader, ShaderStage entry, VertexType vertexType)
         {
             throw new System.NotImplementedException();
         }
@@ -71,7 +69,7 @@ namespace HaloShaderGenerator
             throw new System.NotImplementedException();
         }
 
-        public override string GenerateChudVertexShader(ChudShader chudShader, ShaderStage entry)
+        public override string GenerateChudVertexShader(ChudShader chudShader, ShaderStage entry, VertexType vertexType)
         {
             throw new System.NotImplementedException();
         }
@@ -125,7 +123,7 @@ namespace HaloShaderGenerator
 
         public static string GetTestSharedVertexShader(VertexType vertex, ShaderStage stage)
         {
-            var vertexShaderPath = Path.Combine(ReferencePath, $"{ShaderType}_shared_vertex_shaders.glvs");
+            var vertexShaderPath = Path.Combine(ReferencePath, $"{ShaderType}_shared_vertex_shaders");
             vertexShaderPath = Path.Combine(vertexShaderPath, $"{vertex.ToString().ToLower()}");
             vertexShaderPath = Path.Combine(vertexShaderPath, $"{stage.ToString().ToLower()}.shared_vertex_shader");
             return vertexShaderPath;
@@ -133,7 +131,7 @@ namespace HaloShaderGenerator
 
         public static string GetTestSharedPixelShader(ShaderStage stage, int methodIndex = -1, int optionIndex = -1)
         {
-            var vertexShaderPath = Path.Combine(ReferencePath, $"{ShaderType}_shared_pixel_shaders.glps");
+            var vertexShaderPath = Path.Combine(ReferencePath, $"{ShaderType}_shared_pixel_shaders");
             var filename = $"{stage.ToString().ToLower()}";
             if(methodIndex != -1 && optionIndex != -1)
             {
@@ -150,18 +148,12 @@ namespace HaloShaderGenerator
             if (IgnoreD3DX && usesD3DX)
                 return;
 
+            string stageFixedLength = stage.ToString().ToLower().PadRight(24);
+
             if (!success)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Generated shader for {shaderName} at {stage.ToString().ToLower()} is not identical to reference." + (usesD3DX ? " USES D3DX." : ""));
-                Console.ResetColor();
-            }
+                QueuedConsole.QueueMessage($"{shaderName.PadRight(32)}{stageFixedLength}\tnot identical to reference" + (usesD3DX ? " USES D3DX." : ""), ConsoleColor.Red);
             else
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Generated shader for {shaderName} at {stage.ToString().ToLower()} is identical to reference.");
-                Console.ResetColor();
-            }
+                QueuedConsole.QueueMessage($"{shaderName.PadRight(32)}{stageFixedLength}\tidentical to reference", ConsoleColor.Green);
         }
 
         public static void DisplayVertexShaderTestResults(bool success, VertexType vertex, ShaderStage stage, bool usesD3DX)
@@ -169,18 +161,12 @@ namespace HaloShaderGenerator
             if (IgnoreD3DX && usesD3DX)
                 return;
 
+            string stageFixedLength = stage.ToString().ToLower().PadRight(24);
+
             if (!success)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Generated shader for {stage.ToString().ToLower()} vertex format {vertex.ToString().ToLower()} is not identical to reference." + (usesD3DX ? " USES D3DX." : ""));
-                Console.ResetColor();
-            }
+                QueuedConsole.QueueMessage($"{stageFixedLength}\tvertex type {vertex.ToString().ToLower().PadRight(24)}\tnot identical to reference" + (usesD3DX ? " USES D3DX." : ""), ConsoleColor.Red);
             else
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Generated shader for {stage.ToString().ToLower()} vertex format {vertex.ToString().ToLower()} is identical to reference.");
-                Console.ResetColor();
-            }
+                QueuedConsole.QueueMessage($"{stageFixedLength}\tvertex type {vertex.ToString().ToLower().PadRight(24)}\tidentical to reference", ConsoleColor.Green);
         }
 
         public static void DisplaySharedPixelShaderTestResults(bool success, int methodIndex, int optionIndex, ShaderStage stage, bool usesD3DX)
@@ -188,30 +174,26 @@ namespace HaloShaderGenerator
             if (IgnoreD3DX && usesD3DX)
                 return;
 
+            string stageFixedLength = (stage.ToString().ToLower() + $"_{methodIndex}_{optionIndex}").PadRight(24);
+
             if (!success)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Generated shader for {stage.ToString().ToLower()}_{methodIndex}_{optionIndex} is not identical to reference." + (usesD3DX ? " USES D3DX." : ""));
-                Console.ResetColor();
-            }
+                QueuedConsole.QueueMessage($"{stageFixedLength}\tnot identical to reference" + (usesD3DX ? " USES D3DX." : ""), ConsoleColor.Red);
             else
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Generated shader for {stage.ToString().ToLower()}_{methodIndex}_{optionIndex} is identical to reference.");
-                Console.ResetColor();
-            }
+                QueuedConsole.QueueMessage($"{stageFixedLength}\tidentical to reference", ConsoleColor.Green);
         }
 
         public static bool CompareShaders(string generatedDissassembly, string filePath, string version, out bool usesD3DX)
         {
-            var generatedShaderFile = new FileInfo("unittest.shader");
+            string fileGuid = Guid.NewGuid().ToString("N") + ".shader";
+
+            var generatedShaderFile = new FileInfo(fileGuid);
             using (var genStream = generatedShaderFile.Create())
             using (StreamWriter writer = new StreamWriter(genStream))
             {
                 writer.WriteLine(generatedDissassembly);
             }
             var referenceDissasembly = File.ReadAllText(filePath);
-            generatedDissassembly = File.ReadAllText("unittest.shader");
+            generatedDissassembly = File.ReadAllText(fileGuid);
 
             bool equal = string.Equals(generatedDissassembly, referenceDissasembly);
             generatedShaderFile.Delete();
@@ -226,7 +208,31 @@ namespace HaloShaderGenerator
             return equal;
         }
 
-        public struct DissasemblyConstants
+        public struct RegisterConstant
+        {
+            public string Name;
+            public string Register; // eg. s2 for sampler 2
+
+            public static bool operator==(RegisterConstant a, RegisterConstant b)
+            {
+                return a.Name == b.Name;
+            }
+            public static bool operator!=(RegisterConstant a, RegisterConstant b)
+            {
+                return a.Name != b.Name;
+            }
+            public override bool Equals(object a)
+            {
+                return typeof(RegisterConstant) == a.GetType() && this.Name == ((RegisterConstant)a).Name;
+            }
+
+            public override int GetHashCode()
+            {
+                return Name.GetHashCode();
+            }
+        }
+
+        public struct DisassemblyConstants
         {
             public string Name;
             public int Index;
@@ -235,7 +241,7 @@ namespace HaloShaderGenerator
             public string Z;
             public string W;
 
-            public DissasemblyConstants(string name, int index, string x, string y, string z, string w)
+            public DisassemblyConstants(string name, int index, string x, string y, string z, string w)
             {
                 Name = name;
                 Index = index;
@@ -246,7 +252,7 @@ namespace HaloShaderGenerator
             }
         }
 
-        public static Dictionary<string, DissasemblyConstants> GetConstants(string data, string version)
+        public static Dictionary<string, DisassemblyConstants> GetConstants(string data, string version)
         {
             var startIndex = data.IndexOf(version) + 7;
             var trimmedString = data.Substring(startIndex);
@@ -256,27 +262,49 @@ namespace HaloShaderGenerator
             var constantsBlock = trimmedString.Substring(0, endIndex);
             constantsBlock = constantsBlock.Replace("    def ", "");
             List<string> registerConstants = constantsBlock.Split('\n').ToList();
-            Dictionary<string, DissasemblyConstants> constantsMapping = new Dictionary<string, DissasemblyConstants>();
+            Dictionary<string, DisassemblyConstants> constantsMapping = new Dictionary<string, DisassemblyConstants>();
             for(int i = 0; i < registerConstants.Count; i++)
             {
                 var register = registerConstants[i];
                 var regConstants = register.Split(',').ToList();
-                if (regConstants.Count == 0)
+                if (regConstants.Count != 4) // must be 4, otherwise not a constant
                     continue;
                 var name = regConstants[0];
                 regConstants.RemoveAt(0);
-                constantsMapping[name] = new DissasemblyConstants(name, i, regConstants[0], regConstants[1], regConstants[2], regConstants[3]);
+                constantsMapping[name] = new DisassemblyConstants(name, i, regConstants[0], regConstants[1], regConstants[2], regConstants[3]);
             }
 
             return constantsMapping;
         }
 
-        public static string RebuildConstants(DissasemblyConstants constant)
+        // samplers only for now
+        public static List<RegisterConstant> GetRegisters(string data)
+        {
+            List<RegisterConstant> result = new List<RegisterConstant>();
+            List<string> dataLined = data.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            int titleLineIndex = dataLined.IndexOf("// Registers:");
+            int registerCount = titleLineIndex - 7;
+            int regOffset = dataLined[titleLineIndex + 2].IndexOf("Reg");
+
+            for (int i = titleLineIndex + 4; i < titleLineIndex + 4 + registerCount; i++)
+            {
+                string name = dataLined[i].Remove(0, 5).Split(' ')[0];
+                string register = dataLined[i].Remove(0, regOffset).Split(' ')[0];
+                RegisterConstant constant = new RegisterConstant { Name = name, Register = register };
+                if (register.StartsWith("s"))
+                    result.Add(constant);
+            }
+
+            return result;
+        }
+
+        public static string RebuildConstants(DisassemblyConstants constant)
         {
             return $"{constant.X}, {constant.Y}, {constant.Z}, {constant.W}";
         }
 
-        public static string ReplaceConstants(DissasemblyConstants genConstants, DissasemblyConstants refConstants, string genData)
+        public static string ReplaceConstants(DisassemblyConstants genConstants, DisassemblyConstants refConstants, string genData)
         {
             genData = genData.Replace($"{genConstants.Name} ", $"shadergenprefix{refConstants.Name}shadergensuffix ");
             genData = genData.Replace($"{genConstants.Name}.", $"shadergenprefix{refConstants.Name}shadergensuffix.");
@@ -295,7 +323,7 @@ namespace HaloShaderGenerator
             if (refConstants.Count != genConstants.Count)
                 return false;
 
-            Dictionary<DissasemblyConstants, DissasemblyConstants> swaps = new Dictionary<DissasemblyConstants, DissasemblyConstants>();
+            Dictionary<DisassemblyConstants, DisassemblyConstants> swaps = new Dictionary<DisassemblyConstants, DisassemblyConstants>();
 
             foreach(var refConstantName in refConstants.Keys)
             {
@@ -334,6 +362,45 @@ namespace HaloShaderGenerator
             destConstantBlock = destConstantBlock.Substring(0, endIndex);
 
             genData = genData.Replace(sourceConstantBlock, destConstantBlock);
+
+            // samplers
+            var refSamplers = GetRegisters(refData);
+            var genSamplers = GetRegisters(genData);
+
+            Dictionary<string, string> replacements = new Dictionary<string, string>();
+
+            // replace with generic first so we don't override
+            foreach (var refSampler in refSamplers)
+            {
+                int index = genSamplers.IndexOf(refSampler);
+                if (index == -1)
+                    return false;
+
+                string samplerIndex = genSamplers[index].Register.Remove(0, 1);
+                string rep = $"SAMPLER{samplerIndex}";
+
+                genData = genData.Replace(genSamplers[index].Register, rep);
+                replacements.Add(rep, refSampler.Register);
+            }
+            foreach (var rep in replacements)
+            {
+                // hack for columns
+                if (rep.Key.Remove(0, 6).Length < rep.Value.Length)
+                {
+                    int index = genData.IndexOf(rep.Key);
+
+                    genData = genData.Remove(index + rep.Key.Length, 1);
+                }
+                else if (rep.Key.Remove(0, 6).Length > rep.Value.Length)
+                {
+                    int index = genData.IndexOf(rep.Key);
+
+                    genData = genData.Insert(index + rep.Key.Length, " ");
+                }
+
+                genData = genData.Replace(rep.Key, rep.Value);
+            }
+
             return string.Equals(genData, refData);
         }
 
@@ -424,10 +491,17 @@ namespace HaloShaderGenerator
         {
             bool success = true;
 
+            List<Task<bool>> testTasks = new List<Task<bool>>();
+
             foreach (ExplicitShader explicitShader in Enum.GetValues(typeof(ExplicitShader)))
             {
-                success &= TestExplicitPixelShader(explicitShader);
+                Task<bool> testTask = Task.Run(() => { return TestExplicitPixelShader(explicitShader); });
+                testTasks.Add(testTask);
             }
+
+            Task.WaitAll(testTasks.ToArray());
+
+            success = !testTasks.Any(p => p.Result != true);
 
             if (success)
                 Console.WriteLine("All unit tests passed sucessfully!");
@@ -441,10 +515,17 @@ namespace HaloShaderGenerator
         {
             bool success = true;
 
+            List<Task<bool>> testTasks = new List<Task<bool>>();
+
             foreach (ChudShader chudShader in Enum.GetValues(typeof(ChudShader)))
             {
-                success &= TestChudPixelShader(chudShader);
+                Task<bool> testTask = Task.Run(() => { return TestChudPixelShader(chudShader); });
+                testTasks.Add(testTask);
             }
+
+            Task.WaitAll(testTasks.ToArray());
+
+            success = !testTasks.Any(p => p.Result != true);
 
             if (success)
                 Console.WriteLine("All unit tests passed sucessfully!");
@@ -457,8 +538,9 @@ namespace HaloShaderGenerator
         public bool TestExplicitVertexShader(ExplicitShader explicitShader)
         {
             bool success = true;
+            var generator = new ExplicitGenerator();
 
-            var entries = Generic.GenericShaderStage.GetExplicitEntryPoints(explicitShader);
+            var entries = generator.ScrapeEntryPoints(explicitShader);
 
             foreach (var entry in entries)
             {
@@ -472,15 +554,20 @@ namespace HaloShaderGenerator
                     continue;
                 }
 
-                var disassembly = GenerateExplicitVertexShader(explicitShader, entry);
-                bool equal = CompareShaders(disassembly, filePath, "vs_3_0", out bool usesD3DX);
-                success &= equal;
-                DisplayPixelShaderTestResults(equal, explicitShader.ToString(), entry, usesD3DX);
+                var vertexTypes = generator.ScrapeVertexTypes(explicitShader);
 
-                if (!equal)
+                foreach (var vertexType in vertexTypes)
                 {
-                    string filename = $"generated_{Application.ExplicitShader}_{entry}.vertex_shader";
-                    Application.WriteShaderFile(filename, disassembly);
+                    var disassembly = GenerateExplicitVertexShader(explicitShader, entry, vertexType);
+                    bool equal = CompareShaders(disassembly, filePath, "vs_3_0", out bool usesD3DX);
+                    success &= equal;
+                    DisplayPixelShaderTestResults(equal, explicitShader.ToString() + $" {vertexType}", entry, usesD3DX);
+
+                    if (!equal)
+                    {
+                        string filename = $"generated_{Application.ExplicitShader}_{entry}_{vertexType}.vertex_shader";
+                        Application.WriteShaderFile(filename, disassembly);
+                    }
                 }
             }
 
@@ -505,7 +592,7 @@ namespace HaloShaderGenerator
                     continue;
                 }
 
-                var disassembly = GenerateChudVertexShader(chudShader, entry);
+                var disassembly = GenerateChudVertexShader(chudShader, entry, VertexType.SimpleChud);
                 bool equal = CompareShaders(disassembly, filePath, "vs_3_0", out bool usesD3DX);
                 success &= equal;
                 DisplayPixelShaderTestResults(equal, chudShader.ToString(), entry, usesD3DX);
@@ -524,13 +611,20 @@ namespace HaloShaderGenerator
         {
             bool success = true;
 
+            List<Task<bool>> testTasks = new List<Task<bool>>();
+
             foreach (ExplicitShader explicitShader in Enum.GetValues(typeof(ExplicitShader)))
             {
-                success &= TestExplicitVertexShader(explicitShader);
+                Task<bool> testTask = Task.Run(() => { return TestExplicitVertexShader(explicitShader); });
+                testTasks.Add(testTask);
             }
 
+            Task.WaitAll(testTasks.ToArray());
+
+            success = !testTasks.Any(p => p.Result != true);
+
             if (success)
-                Console.WriteLine("All unit tests passed sucessfully!");
+                Console.WriteLine("All unit tests passed successfully!");
             else
                 Console.WriteLine("Failed unit tests. See above for more details.");
 
@@ -541,106 +635,40 @@ namespace HaloShaderGenerator
         {
             bool success = true;
 
+            List<Task<bool>> testTasks = new List<Task<bool>>();
+
             foreach (ChudShader chudShader in Enum.GetValues(typeof(ChudShader)))
             {
-                success &= TestChudVertexShader(chudShader);
+                Task<bool> testTask = Task.Run(() => { return TestChudVertexShader(chudShader); });
+                testTasks.Add(testTask);
             }
 
+            Task.WaitAll(testTasks.ToArray());
+
+            success = !testTasks.Any(p => p.Result != true);
+
             if (success)
-                Console.WriteLine("All unit tests passed sucessfully!");
+                Console.WriteLine("All unit tests passed successfully!");
             else
                 Console.WriteLine("Failed unit tests. See above for more details.");
 
             return success;
         }
 
-        public bool TestAllPixelShaders(List<List<int>> shaderOverrides, List<ShaderStage> stageOverrides, List<List<int>> methodOverrides)
+        private bool TestPixelShaderTaskBody(List<int> testShader, List<ShaderStage> stageOverrides, List<List<int>> methodOverrides)
         {
             bool success = true;
 
-            List<List<int>> shaders;
-            if (shaderOverrides != null && shaderOverrides.Count > 0)
-                shaders = shaderOverrides;
-            else
-                shaders = GetAllTestPixelShaders();
+            // if we've added new options, old shader lists won't have them. use this to generate
+            List<int> generatorList = new List<int>();
 
-            foreach (var testShader in shaders)
+            for (int i = 0; i < ReferenceGenerator.GetMethodCount(); i++)
             {
-                if (HalogramIsMs25(testShader))
-                    continue;
-
-                // if we've added new options, old shader lists won't have them. use this to generate
-                List<int> generatorList = new List<int>();
-
-                for (int i = 0; i < ReferenceGenerator.GetMethodCount(); i++)
-                {
-                    if (i < testShader.Count)
-                        generatorList.Add(testShader[i]);
-                    else
-                        generatorList.Add(0);
-                }
-
-                List<ShaderStage> stages;
-                if (stageOverrides != null && stageOverrides.Count > 0)
-                    stages = stageOverrides;
+                if (i < testShader.Count)
+                    generatorList.Add(testShader[i]);
                 else
-                    stages = GetAllShaderStages();
-
-                foreach (var stage in stages)
-                {
-                    if (ReferenceGenerator.IsEntryPointSupported(stage) && !ReferenceGenerator.IsPixelShaderShared(stage))
-                    {
-                        if (methodOverrides != null && methodOverrides.Count == ReferenceGenerator.GetMethodCount())
-                        {
-                            bool validOptions = true;
-                            for (int i = 0; i < ReferenceGenerator.GetMethodCount(); i++)
-                            {
-                                var optionOverrides = methodOverrides[i];
-                                if(optionOverrides != null && optionOverrides.Count > 0)
-                                    validOptions &= optionOverrides.Contains(testShader[i]);
-                            }
-                                
-
-                            if (!validOptions)
-                                continue;
-                        }
-
-                        string filePath = Path.Combine(Path.Combine(ReferencePath, $"{ShaderType.ToLower()}_templates"), BuildShaderName(testShader));
-                        filePath = Path.Combine(filePath, BuildPixelShaderEntryPointName(stage));
-                        var file = new FileInfo(filePath);
-
-                        if (file.Exists == false)
-                        {
-                            Console.WriteLine($"No reference shader for {BuildShaderName(testShader)} at {stage.ToString().ToLower()}");
-                            success = false;
-                            continue;
-                        }
-
-                        var disassembly = GeneratePixelShader(stage, generatorList);
-                        bool equal = CompareShaders(disassembly, filePath, "ps_3_0",  out bool usesD3DX);
-                        success &= equal;
-                        DisplayPixelShaderTestResults(equal, BuildShaderName(generatorList), stage, usesD3DX);
-
-                        if (Application.OutputAll && !equal)
-                        {
-                            string filename = $"generated_{stage.ToString().ToLower()}{BuildShaderName(generatorList)}.pixl";
-                            Application.WriteShaderFile(filename, disassembly);
-                        }
-                    }
-                }
+                    generatorList.Add(0);
             }
-
-            if (success)
-                Console.WriteLine("All unit tests passed sucessfully!");
-            else
-                Console.WriteLine("Failed unit tests. See above for more details.");
-
-            return success;
-        }
-
-        public bool TestAllSharedPixelShaders(List<ShaderStage> stageOverrides)
-        {
-            bool success = true;
 
             List<ShaderStage> stages;
             if (stageOverrides != null && stageOverrides.Count > 0)
@@ -650,57 +678,185 @@ namespace HaloShaderGenerator
 
             foreach (var stage in stages)
             {
-                if (ReferenceGenerator.IsEntryPointSupported(stage) && ReferenceGenerator.IsPixelShaderShared(stage))
+                if (ReferenceGenerator.IsEntryPointSupported(stage) && !ReferenceGenerator.IsPixelShaderShared(stage))
                 {
-                    if (ReferenceGenerator.IsSharedPixelShaderUsingMethods(stage))
+                    if (methodOverrides != null && methodOverrides.Count == ReferenceGenerator.GetMethodCount())
                     {
+                        bool validOptions = true;
                         for (int i = 0; i < ReferenceGenerator.GetMethodCount(); i++)
                         {
-                            for (int j = 0; j < ReferenceGenerator.GetMethodOptionCount(i); j++)
-                            {
-                                if (ReferenceGenerator.IsMethodSharedInEntryPoint(stage, i))
-                                {
-                                    string filePath = GetTestSharedPixelShader(stage, i, j);
-                                    var file = new FileInfo(filePath);
-
-                                    if (file.Exists == false)
-                                    {
-                                        Console.WriteLine($"No reference shader for {stage}_{i}_{j} at {stage.ToString().ToLower()}");
-                                        success = false;
-                                        continue;
-                                    }
-                                    bool equal = CompareShaders(GenerateSharedPixelShader(stage, i, j), filePath, "ps_3_0", out bool usesD3DX);
-                                    success &= equal;
-                                    DisplaySharedPixelShaderTestResults(equal, i, j, stage, usesD3DX);
-                                }
-                            }
-
+                            var optionOverrides = methodOverrides[i];
+                            if (optionOverrides != null && optionOverrides.Count > 0)
+                                validOptions &= optionOverrides.Contains(testShader[i]);
                         }
-                    }
-                    else
-                    {
-                        string filePath = GetTestSharedPixelShader(stage, -1, -1);
-                        var file = new FileInfo(filePath);
 
-                        if (file.Exists == false)
-                        {
-                            Console.WriteLine($"No reference shader for {stage} at {stage.ToString().ToLower()}");
-                            success = false;
+
+                        if (!validOptions)
                             continue;
-                        }
-                        bool equal = CompareShaders(GenerateSharedPixelShader(stage, -1, -1), filePath, "ps_3_0", out bool usesD3DX);
-                        success &= equal;
-                        DisplaySharedPixelShaderTestResults(equal, -1, -1, stage, usesD3DX);
                     }
 
-                    
+                    string filePath = Path.Combine(Path.Combine(ReferencePath, $"{ShaderType.ToLower()}_templates"), BuildShaderName(testShader));
+                    filePath = Path.Combine(filePath, BuildPixelShaderEntryPointName(stage));
+                    var file = new FileInfo(filePath);
+
+                    if (file.Exists == false)
+                    {
+                        Console.WriteLine($"No reference shader for {BuildShaderName(testShader)} at {stage.ToString().ToLower()}");
+                        GeneratePixelShader(stage, generatorList);
+                        DisplayPixelShaderTestResults(true, BuildShaderName(generatorList), stage, false);
+                        success = false;
+                        continue;
+                    }
+
+                    var disassembly = GeneratePixelShader(stage, generatorList);
+                    bool equal = CompareShaders(disassembly, filePath, "ps_3_0", out bool usesD3DX);
+                    success &= (equal || usesD3DX);
+                    DisplayPixelShaderTestResults(equal, BuildShaderName(generatorList), stage, usesD3DX);
+
+                    if (Application.OutputAll && !equal)
+                    {
+                        string filename = $"generated_{stage.ToString().ToLower()}{BuildShaderName(generatorList)}.pixl";
+                        Application.WriteShaderFile(filename, disassembly);
+                    }
                 }
             }
 
+            return success;
+        }
+
+        public bool TestAllPixelShaders(List<List<int>> shaderOverrides, List<ShaderStage> stageOverrides, List<List<int>> methodOverrides)
+        {
+            List<List<int>> shaders;
+            if (shaderOverrides != null && shaderOverrides.Count > 0)
+                shaders = shaderOverrides;
+            else
+                shaders = GetAllTestPixelShaders();
+
+            List<Task<bool>> testTasks = new List<Task<bool>>();
+
+            foreach (var testShader in shaders)
+            {
+                if (HalogramIsMs25(testShader))
+                    continue;
+
+                Task<bool> testTask = Task.Run(() => { return TestPixelShaderTaskBody(testShader, stageOverrides, methodOverrides); });
+                testTasks.Add(testTask);
+            }
+
+            Task.WaitAll(testTasks.ToArray());
+
+            bool success = !testTasks.Any(p => p.Result != true);
+
             if (success)
-                Console.WriteLine("All unit tests passed sucessfully!");
+                Console.WriteLine("All unit tests passed successfully!");
             else
                 Console.WriteLine("Failed unit tests. See above for more details.");
+
+            return success;
+        }
+
+        private bool TestSharedPixelShaderTaskBody(ShaderStage stage)
+        {
+            bool success = true;
+            if (ReferenceGenerator.IsEntryPointSupported(stage) && ReferenceGenerator.IsPixelShaderShared(stage))
+            {
+                if (ReferenceGenerator.IsSharedPixelShaderUsingMethods(stage))
+                {
+                    for (int i = 0; i < ReferenceGenerator.GetMethodCount(); i++)
+                    {
+                        for (int j = 0; j < ReferenceGenerator.GetMethodOptionCount(i); j++)
+                        {
+                            if (ReferenceGenerator.IsMethodSharedInEntryPoint(stage, i))
+                            {
+                                string filePath = GetTestSharedPixelShader(stage, i, j);
+                                var file = new FileInfo(filePath);
+
+                                if (file.Exists == false)
+                                {
+                                    Console.WriteLine($"No reference shader for {stage}_{i}_{j} at {stage.ToString().ToLower()}");
+                                    success = false;
+                                    continue;
+                                }
+                                bool equal = CompareShaders(GenerateSharedPixelShader(stage, i, j), filePath, "ps_3_0", out bool usesD3DX);
+                                success &= equal;
+                                DisplaySharedPixelShaderTestResults(equal, i, j, stage, usesD3DX);
+                            }
+                        }
+
+                    }
+                }
+                else
+                {
+                    string filePath = GetTestSharedPixelShader(stage, -1, -1);
+                    var file = new FileInfo(filePath);
+
+                    if (file.Exists == false)
+                    {
+                        Console.WriteLine($"No reference shader for {stage} at {stage.ToString().ToLower()}");
+                        success = false;
+                        return success;
+                    }
+                    bool equal = CompareShaders(GenerateSharedPixelShader(stage, -1, -1), filePath, "ps_3_0", out bool usesD3DX);
+                    success &= equal;
+                    DisplaySharedPixelShaderTestResults(equal, -1, -1, stage, usesD3DX);
+                }
+            }
+
+            return success;
+        }
+
+        public bool TestAllSharedPixelShaders(List<ShaderStage> stageOverrides)
+        {
+            List<ShaderStage> stages;
+            if (stageOverrides != null && stageOverrides.Count > 0)
+                stages = stageOverrides;
+            else
+                stages = GetAllShaderStages();
+
+            List<Task<bool>> testTasks = new List<Task<bool>>();
+
+            foreach (var stage in stages)
+            {
+                Task<bool> testTask = Task.Run(() => { return TestSharedPixelShaderTaskBody(stage); });
+                testTasks.Add(testTask);
+            }
+
+            Task.WaitAll(testTasks.ToArray());
+            bool success = !testTasks.Any(p => p.Result != true);
+
+            if (success)
+                Console.WriteLine("All unit tests passed successfully!");
+            else
+                Console.WriteLine("Failed unit tests. See above for more details.");
+
+            return success;
+        }
+
+        private bool TestShaderVertexShaderTaskBody(VertexType vertex, List<ShaderStage> stages)
+        {
+            bool success = true;
+            if (!ReferenceGenerator.IsVertexFormatSupported(vertex))
+                return false;
+
+            foreach (var stage in stages)
+            {
+                if (ReferenceGenerator.IsEntryPointSupported(stage) && ReferenceGenerator.IsVertexShaderShared(stage))
+                {
+                    string filePath = GetTestSharedVertexShader(vertex, stage);
+                    var file = new FileInfo(filePath);
+
+                    if (file.Exists == false)
+                    {
+                        Console.WriteLine($"No reference shader for {stage.ToString().ToLower()} vertex format {vertex.ToString().ToLower()}");
+                        success = false;
+                        continue;
+                    }
+
+                    bool equal = CompareShaders(GenerateSharedVertexShader(vertex, stage), filePath, "vs_3_0", out bool usesD3DX);
+                    success &= equal;
+                    DisplayVertexShaderTestResults(equal, vertex, stage, usesD3DX);
+                }
+            }
 
             return success;
         }
@@ -715,41 +871,25 @@ namespace HaloShaderGenerator
             else
                 vertices = GetAllVertexFormats();
 
+            List<ShaderStage> stages;
+            if (stageOverrides != null && stageOverrides.Count > 0)
+                stages = stageOverrides;
+            else
+                stages = GetAllShaderStages();
+
+            List<Task<bool>> testTasks = new List<Task<bool>>();
+
             foreach (var vertex in vertices)
             {
-                if (!ReferenceGenerator.IsVertexFormatSupported(vertex))
-                    continue;
-
-                List<ShaderStage> stages;
-                if (stageOverrides != null && stageOverrides.Count > 0)
-                    stages = stageOverrides;
-                else
-                    stages = GetAllShaderStages();
-
-                foreach (var stage in stages)
-                {
-                    if (ReferenceGenerator.IsEntryPointSupported(stage) && ReferenceGenerator.IsVertexShaderShared(stage))
-                    {
-
-                        string filePath = GetTestSharedVertexShader(vertex, stage);
-                        var file = new FileInfo(filePath);
-
-                        if (file.Exists == false)
-                        {
-                            Console.WriteLine($"No reference shader for {stage.ToString().ToLower()} vertex format {vertex.ToString().ToLower()}");
-                            success = false;
-                            continue;
-                        }
-
-                        bool equal = CompareShaders(GenerateSharedVertexShader(vertex, stage), filePath, "vs_3_0",  out bool usesD3DX);
-                        success &= equal;
-                        DisplayVertexShaderTestResults(equal, vertex, stage, usesD3DX);
-                    }
-                }
+                Task<bool> testTask = Task.Run(() => { return TestShaderVertexShaderTaskBody(vertex, stages); });
+                testTasks.Add(testTask);
             }
 
+            Task.WaitAll(testTasks.ToArray());
+            success = !testTasks.Any(p => p.Result != true);
+
             if (success)
-                Console.WriteLine("All unit tests passed sucessfully!");
+                Console.WriteLine("All unit tests passed successfully!");
             else
                 Console.WriteLine("Failed unit tests. See above for more details.");
 
@@ -766,11 +906,11 @@ namespace HaloShaderGenerator
 
         public abstract string GenerateExplicitPixelShader(ExplicitShader explicitShader, ShaderStage entry);
 
-        public abstract string GenerateExplicitVertexShader(ExplicitShader explicitShader, ShaderStage entry);
+        public abstract string GenerateExplicitVertexShader(ExplicitShader explicitShader, ShaderStage entry, VertexType vertexType);
 
         public abstract string GenerateChudPixelShader(ChudShader chudShader, ShaderStage entry);
 
-        public abstract string GenerateChudVertexShader(ChudShader chudShader, ShaderStage entry);
+        public abstract string GenerateChudVertexShader(ChudShader chudShader, ShaderStage entry, VertexType vertexType);
 
         private bool HalogramIsMs25(List<int> testShader)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HaloShaderGenerator.DirectX;
 using HaloShaderGenerator.Generator;
 using HaloShaderGenerator.Globals;
+using HaloShaderGenerator.Particle;
 
 namespace HaloShaderGenerator.Beam
 {
@@ -55,43 +56,35 @@ namespace HaloShaderGenerator.Beam
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Albedo>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Blend_Mode>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Black_Point>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Fog>());
+            Shared.Blend_Mode sBlendMode = (Shared.Blend_Mode)Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
 
-            //
-            // Convert to shared enum
-            //
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Beam, entryPoint, sBlendMode, 
+                Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, ApplyFixes);
 
-            var sAlbedo = Enum.Parse(typeof(Shared.Albedo), albedo.ToString());
-            var sBlendMode = Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
-            var sBlackPoint = Enum.Parse(typeof(Shared.Black_Point), black_point.ToString());
-            var sFog = Enum.Parse(typeof(Shared.Fog), fog.ToString());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Albedo>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Blend_Mode>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Black_Point>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Fog>());
 
-            //
-            // The following code properly names the macros (like in rmdf)
-            //
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("albedo", albedo.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("blend_mode", blend_mode.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("black_point", black_point.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("fog", fog.ToString().ToLower()));
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_albedo_ps", sAlbedo, "calc_albedo_", "_ps"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", sBlendMode, "blend_type_"));
-            //macros.Add(ShaderGeneratorBase.CreateMacro("black_point", sBlackPoint, "black_point_"));
-            //macros.Add(ShaderGeneratorBase.CreateMacro("fog", sFog, "fog_"));
+            string entryName = entryPoint.ToString().ToLower() + "_ps";
+            switch (entryPoint)
+            {
+                case ShaderStage.Static_Prt_Linear:
+                case ShaderStage.Static_Prt_Quadratic:
+                case ShaderStage.Static_Prt_Ambient:
+                    entryName = "static_prt_ps";
+                    break;
+                case ShaderStage.Dynamic_Light_Cinematic:
+                    entryName = "dynamic_light_cine_ps";
+                    break;
+            }
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Beam, "k_shadertype_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("albedo_arg", sAlbedo, "k_albedo_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type_arg", sBlendMode, "k_blend_mode_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("black_point_arg", sBlackPoint, "k_black_point_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("fog_arg", sFog, "k_fog_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("APPLY_HLSL_FIXES", ApplyFixes ? 1 : 0));
-
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"pixl_beam.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
+            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"beam.fx", macros, entryName, "ps_3_0");
 
             return new ShaderGeneratorResult(shaderBytecode);
         }

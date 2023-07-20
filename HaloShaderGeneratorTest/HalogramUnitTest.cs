@@ -52,7 +52,7 @@ namespace HaloShaderGenerator
             throw new System.NotImplementedException();
         }
 
-        public override string GenerateExplicitVertexShader(ExplicitShader explicitShader, ShaderStage stage)
+        public override string GenerateExplicitVertexShader(ExplicitShader explicitShader, ShaderStage stage, VertexType vertexType)
         {
             throw new System.NotImplementedException();
         }
@@ -62,7 +62,7 @@ namespace HaloShaderGenerator
             throw new System.NotImplementedException();
         }
 
-        public override string GenerateChudVertexShader(ChudShader chudShader, ShaderStage entry)
+        public override string GenerateChudVertexShader(ChudShader chudShader, ShaderStage entry, VertexType vertexType)
         {
             throw new System.NotImplementedException();
         }

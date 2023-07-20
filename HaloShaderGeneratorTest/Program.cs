@@ -15,33 +15,36 @@ namespace HaloShaderGenerator
         static readonly ShaderSubtype TestStageType = ShaderSubtype.Pixel; //shared_vertex, shared_pixel, vertex or pixel
 
         static readonly bool ExplicitTest = false;
-        static readonly string ExplicitReferencePath = @"C:\REPOS\TagTool\TagTool\bin\x64\Debug\HaloOnline106708\explicit";
+        static readonly string ExplicitReferencePath = @"D:\REPOS\TagTool\TagTool\bin\x64\Debug\HaloOnline106708\explicit";
         static readonly bool ExplicitTestSingle = true;
         static public readonly ExplicitShader ExplicitShader = ExplicitShader.pixel_copy;
 
         static readonly bool ChudTest = false;
-        static readonly string ChudReferencePath = @"C:\REPOS\TagTool\TagTool\bin\x64\Debug\HaloOnline106708\chud";
+        static readonly string ChudReferencePath = @"D:\REPOS\TagTool\TagTool\bin\x64\Debug\HaloOnline106708\chud";
         static readonly bool ChudTestSingle = true;
         static public readonly ChudShader ChudShader = ChudShader.chud_simple;
 
         static readonly bool TemplateTest = true;
-        static readonly string ShaderReferencePath = @"C:\REPOS\TagTool\TagTool\bin\x64\Debug\HaloOnline106708\Shaders";
+        static readonly string ShaderReferencePath = @"D:\REPOS\Epsilon\Epsilon\bin\x64\Debug\HaloOnline106708\shaders";
         static readonly bool UnitTest = false;
         static readonly bool TestSpecificShader = true;
-        static readonly ShaderType TestShaderType = ShaderType.Shader;
+        static readonly ShaderType TestShaderType = ShaderType.Water;
 
         static public readonly bool OutputAll = true;
 
-        static readonly List<ShaderStage> StageOverrides = new List<ShaderStage> {  };
+        static readonly List<ShaderStage> StageOverrides = new List<ShaderStage> { 
+         //ShaderStage.Static_Per_Pixel,
+          //ShaderStage.Static_Prt_Ambient
+        };
 
         #region Shader
         static readonly List<VertexType> VertexOverrides = new List<VertexType> { };
 
-        static readonly List<int> ShaderAlbedoOverrides = new List<int> {  };
+        static readonly List<int> ShaderAlbedoOverrides = new List<int> { };
         static readonly List<int> ShaderBumpOverrides = new List<int> { };
         static readonly List<int> ShaderAlphaOverrides = new List<int> { };
         static readonly List<int> ShaderSpecularOverrides = new List<int> { };
-        static readonly List<int> ShaderMaterialOverrides = new List<int> { };
+        static readonly List<int> ShaderMaterialOverrides = new List<int> {  };
         static readonly List<int> ShaderEnvOverrides = new List<int> { };
         static readonly List<int> ShaderSelfIllumOverrides = new List<int> { };
         static readonly List<int> ShaderBlendModeOverrides = new List<int> { };
@@ -52,9 +55,19 @@ namespace HaloShaderGenerator
 
         static readonly List<List<int>> ShaderOverrides = new List<List<int>>
         {
+            //new List<int> { 0, 2, 0, 2, 1, 0, 0, 3, 0, 0, 0 },
+            //new List<int> { 0, 2, 0, 1, 7, 2, 0, 0, 0, 0, 0 },
+            //new List<int> { 0, 0, 0, 0, 4, 0, 1, 1, 0, 0, 0 },
             //new List<int> { 0, 2, 0, 1, 7, 2, 0, 0, 0, 0, 0 },
             //new List<int> { 0, 2, 0, 1, 7, 0, 0, 0, 0, 1, 0 },
             //new List<int> { 0, 1, 1, 0, 1, 0, 0, 3, 0, 0, 0 },
+            //new List<int> { 0, 2, 0, 1, 2, 2, 0, 0, 0, 1, 0 },
+            //new List<int> { 0, 1, 0, 2, 5, 1, 0, 5, 0, 0, 0 },
+            //new List<int> { 6, 0, 0, 2, 5, 2, 0, 3, 0, 0, 0 },
+            //new List<int> { 0, 2, 0, 1, 1, 2, 0, 0, 0, 1, 0 },
+            //new List<int> { 0, 2, 0, 1, 7, 2, 0, 0, 0, 0, 0 },
+            //new List<int> { 0, 1, 0, 1, 5, 2, 0, 3, 0, 0, 0 },
+            //new List<int> { 0, 1, 0, 2, 5, 2, 0, 3, 0, 0, 0 },
         };
 
         static readonly List<List<int>> ShaderMethodOverrides = new List<List<int>> { ShaderAlbedoOverrides, ShaderBumpOverrides, ShaderAlphaOverrides, ShaderSpecularOverrides, ShaderMaterialOverrides,
@@ -146,6 +159,8 @@ namespace HaloShaderGenerator
             //new List<int> { 0, 8, 1, 0, 1, 0, 0},
             //new List<int> { 0, 9, 0, 1, 0, 2, 0},
             //new List<int> { 2, 9, 1, 1, 0, 2, 0},
+            //new List<int> { 0,8,1,0,1,0,0 },
+            //new List<int> { 0,8,1,0,1,0,0 },
         };
 
         public static readonly List<List<int>> HalogramMS25 = new List<List<int>>
@@ -159,6 +174,8 @@ namespace HaloShaderGenerator
             new List<int> { 0,5,1,0,0,0,1 },
             new List<int> { 0,4,0,0,0,0,0 },
             new List<int> { 9,5,3,0,0,0,0 },
+
+            //new List<int> { 0,8,1,0,1,0,0 },
         };
 
         static readonly List<List<int>> HalogramMethodOverrides = new List<List<int>> { HalogramAlbedoOverride, HalogramSelfIllumOverride, 

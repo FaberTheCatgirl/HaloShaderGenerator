@@ -1,8 +1,0 @@
-﻿#ifndef _APPLY_HLSL_FIXES_HLSLI
-#define _APPLY_HLSL_FIXES_HLSLI
-
-#ifndef APPLY_HLSL_FIXES
-#define APPLY_HLSL_FIXES 0
-#endif
-
-#endif

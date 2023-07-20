@@ -27,20 +27,14 @@ namespace HaloShaderGenerator.Generator
 
                 string relative_path = Path.Combine(parent_directory, filepath);
 
-                // HACK: This should be improved!!!
-                Uri uri1 = new Uri(Directory.GetCurrentDirectory() + "/");
-                Uri uri2 = new Uri(Path.GetFullPath(relative_path));
-                Uri relativeUri = uri1.MakeRelativeUri(uri2);
-                relative_path = relativeUri.ToString();
-                if (relative_path.StartsWith("./")) relative_path = relative_path.Substring(2);
+                Uri uri2 = new Uri(Path.GetFullPath("halo_online_shaders\\" + relative_path));
 
-                string path = Path.Combine("HaloShaderGenerator\\hlsl", relative_path);
+                FileInfo file = new FileInfo(uri2.AbsolutePath);
 
-                string directory = Path.GetDirectoryName(path);
+                if (!file.Exists)
+                    throw new Exception($"Couldn't find file {relative_path}");
 
-                var resourceName = path.Replace('\\', '.').Replace('/', '.');
-
-                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (Stream stream = file.OpenRead())
                 {
                     if(stream == null)
                     {
@@ -67,6 +61,15 @@ namespace HaloShaderGenerator.Generator
                         throw new Exception("Unimplemented include type");
                 }
             }
+        }
+
+        public static string GetSourceFile(string template)
+        {
+            string fileName = template.Split('\\').Last();
+
+            IncludeManager include = new IncludeManager(template.Replace(fileName, ""));
+
+            return include.ReadResource(fileName);
         }
 
         public static byte[] GenerateSource(string template, IEnumerable<D3D.SHADER_MACRO> macros, string entry, string version)
@@ -96,7 +99,7 @@ namespace HaloShaderGenerator.Generator
 #endif
             //flags |= D3DCompiler.D3DCOMPILE.D3DCOMPILE_SKIP_VALIDATION;
             //flags |= D3DCompiler.D3DCOMPILE.D3DCOMPILE_DEBUG;
-            flags |= D3DCompiler.D3DCOMPILE.D3DCOMPILE_OPTIMIZATION_LEVEL2; // if can't get shader to compile 1-1 add or remove this line
+            flags |= D3DCompiler.D3DCOMPILE.D3DCOMPILE_OPTIMIZATION_LEVEL3; // if can't get shader to compile 1-1 add or remove this line
             byte[] shader_code = D3DCompiler.Compile(
                 shader_source,
                 entry,
@@ -134,6 +137,11 @@ namespace HaloShaderGenerator.Generator
             return new D3D.SHADER_MACRO { Name = name, Definition = definition };
         }
 
+        public static D3D.SHADER_MACRO CreateAutoMacro(string name, string definition)
+        {
+            return new D3D.SHADER_MACRO { Name = "category_" + name, Definition = "category_" + name + "_option_" + definition };
+        }
+
         public static D3D.SHADER_MACRO CreateMacro(string name, object method, string prefix = "", string suffix = "")
         {
             return new D3D.SHADER_MACRO { Name = name, Definition = CreateMethodDefinition(method, prefix, suffix) };
@@ -161,6 +169,23 @@ namespace HaloShaderGenerator.Generator
                 var method_name = method.ToString().ToLower();
 
                 macros.Add(new D3D.SHADER_MACRO { Name = $"k_{method_type_name}_{method_name}", Definition = ((int)method).ToString() });
+            }
+
+            return macros;
+        }
+
+        public static IEnumerable<D3D.SHADER_MACRO> CreateAutoMacroMethodEnumDefinitions<MethodType>() where MethodType : struct, IConvertible
+        {
+            List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>(); 
+
+            var method_type_name = typeof(MethodType).Name.ToLower();
+
+            var values = Enum.GetValues(typeof(MethodType));
+            foreach (var method in values)
+            {
+                var method_name = method.ToString().ToLower();
+
+                macros.Add(new D3D.SHADER_MACRO { Name = $"category_{method_type_name}_option_{method_name}", Definition = ((int)method).ToString() });
             }
 
             return macros;

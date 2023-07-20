@@ -65,47 +65,43 @@ namespace HaloShaderGenerator.Water
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Water, entryPoint, Shared.Blend_Mode.Opaque, 
+                Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, ApplyFixes);
 
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Waveshape>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Watercolor>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Reflection>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Refraction>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Bankalpha>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Appearance>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Global_Shape>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Foam>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Reach_Compatibility>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Waveshape>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Watercolor>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Reflection>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Refraction>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Bankalpha>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Appearance>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Global_Shape>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Foam>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Reach_Compatibility>());
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("APPLY_HLSL_FIXES", ApplyFixes ? 1 : 0));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("waveshape", waveshape.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("watercolor", watercolor.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("reflection", reflection.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("refraction", refraction.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("bankalpha", bankalpha.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("appearance", appearance.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("global_shape", global_shape.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("foam", foam.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("reach_compatibility", reach_compatibility.ToString().ToLower()));
 
-            //
-            // The following code properly names the macros (like in rmdf)
-            //
+            string entryName = entryPoint.ToString().ToLower() + "_ps";
+            switch (entryPoint)
+            {
+                case ShaderStage.Static_Prt_Linear:
+                case ShaderStage.Static_Prt_Quadratic:
+                case ShaderStage.Static_Prt_Ambient:
+                    entryName = "static_prt_ps";
+                    break;
+                case ShaderStage.Dynamic_Light_Cinematic:
+                    entryName = "dynamic_light_cine_ps";
+                    break;
+            }
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Water, "k_shadertype_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_waveshape_ps", waveshape, "calc_waveshape_", "_ps"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_watercolor_ps", watercolor, "calc_watercolor_", "_ps"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_reflection_ps", reflection, "calc_reflection_", "_ps"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_refraction_ps", refraction, "calc_refraction_", "_ps"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_bankalpha_ps", bankalpha, "calc_bankalpha_", "_ps"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_foam_ps", foam, "calc_foam_", "_ps"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("waveshape_arg", waveshape, "k_waveshape_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("watercolor_arg", watercolor, "k_watercolor_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("reflection_arg", reflection, "k_reflection_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("refraction_arg", refraction, "k_refraction_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("bankalpha_arg", bankalpha, "k_bankalpha_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("appearance_arg", appearance, "k_appearance_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("global_shape_arg", global_shape, "k_global_shape_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("foam_arg", foam, "k_foam_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("reach_compatibility_arg", reach_compatibility, "k_reach_compatibility_"));
-
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"pixl_water.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
+            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"water.fx", macros, entryName, "ps_3_0");
 
             return new ShaderGeneratorResult(shaderBytecode);
         }
@@ -122,46 +118,34 @@ namespace HaloShaderGenerator.Water
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<VertexType>());
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Shader, entryPoint,
+                Shared.Blend_Mode.Opaque, Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, false, true, vertexType);
 
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Waveshape>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Watercolor>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Reflection>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Refraction>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Bankalpha>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Appearance>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Global_Shape>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Foam>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Reach_Compatibility>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Waveshape>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Watercolor>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Reflection>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Refraction>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Bankalpha>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Appearance>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Global_Shape>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Foam>());
+            macros.AddRange(ShaderGeneratorBase.CreateAutoMacroMethodEnumDefinitions<Reach_Compatibility>());
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("calc_vertex_transform", vertexType, "calc_vertex_transform_", ""));
-            macros.Add(ShaderGeneratorBase.CreateMacro("transform_unknown_vector", vertexType, "transform_unknown_vector_", ""));
-            macros.Add(ShaderGeneratorBase.CreateVertexMacro("input_vertex_format", vertexType));
-            macros.Add(ShaderGeneratorBase.CreateMacro("transform_dominant_light", vertexType, "transform_dominant_light_", ""));
+            //macros.Add(ShaderGeneratorBase.CreateAutoMacro("waveshape", waveshape.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("watercolor", Watercolor.Pure.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("reflection", Reflection.None.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("refraction", Refraction.None.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("bankalpha", Bankalpha.None.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("appearance", Appearance.Default.ToString().ToLower()));
+            //macros.Add(ShaderGeneratorBase.CreateAutoMacro("global_shape", global_shape.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("foam", Foam.None.ToString().ToLower()));
+            macros.Add(ShaderGeneratorBase.CreateAutoMacro("reach_compatibility", Reach_Compatibility.Disabled.ToString().ToLower()));
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("vertextype", vertexType, "k_vertextype_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Water, "k_shadertype_"));
+            string entryName = TemplateGenerator.TemplateGenerator.GetEntryName(entryPoint, true);
+            string filename = TemplateGenerator.TemplateGenerator.GetSourceFilename(Globals.ShaderType.Water);
+            byte[] bytecode = ShaderGeneratorBase.GenerateSource(filename, macros, entryName, "vs_3_0");
 
-            macros.Add(ShaderGeneratorBase.CreateMacro("APPLY_HLSL_FIXES", ApplyFixes ? 1 : 0));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("waveshape_arg", waveshape, "k_waveshape_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("watercolor_arg", watercolor, "k_watercolor_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("reflection_arg", reflection, "k_reflection_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("refraction_arg", refraction, "k_refraction_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("bankalpha_arg", bankalpha, "k_bankalpha_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("appearance_arg", appearance, "k_appearance_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("global_shape_arg", global_shape, "k_global_shape_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("foam_arg", foam, "k_foam_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("reach_compatibility_arg", reach_compatibility, "k_reach_compatibility_"));
-
-
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource(@"glvs_water.hlsl", macros, $"entry_{entryPoint.ToString().ToLower()}", "vs_3_0");
-
-            return new ShaderGeneratorResult(shaderBytecode);
+            return new ShaderGeneratorResult(bytecode);
         }
 
         public ShaderGeneratorResult GenerateVertexShader(VertexType vertexType, ShaderStage entryPoint)
@@ -234,7 +218,7 @@ namespace HaloShaderGenerator.Water
             {
                 case ShaderStage.Static_Per_Pixel:
                 case ShaderStage.Static_Per_Vertex:
-                case ShaderStage.Water_Tesselation:
+                case ShaderStage.Water_Tessellation:
                     return true;
             }
             return false;

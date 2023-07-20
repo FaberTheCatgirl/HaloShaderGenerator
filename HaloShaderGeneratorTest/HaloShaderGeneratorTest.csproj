@@ -94,6 +94,7 @@
     <Compile Include="FoliageUnitTest.cs" />
     <Compile Include="HalogramUnitTest.cs" />
     <Compile Include="LightVolumeUnitTest.cs" />
+    <Compile Include="QueuedConsole.cs" />
     <Compile Include="ScreenUnitTest.cs" />
     <Compile Include="TerrainUnitTest.cs" />
     <Compile Include="ParticleUnitTest.cs" />

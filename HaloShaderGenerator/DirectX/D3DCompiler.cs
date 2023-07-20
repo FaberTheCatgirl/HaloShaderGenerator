@@ -116,7 +116,7 @@ namespace HaloShaderGenerator.DirectX
                 }
                 else
                 {
-                    Console.WriteLine(error_text);
+                    //Console.WriteLine(error_text);
                 }
             }
 

@@ -60,48 +60,33 @@ namespace HaloShaderGenerator.Terrain
 
             List<D3D.SHADER_MACRO> macros = new List<D3D.SHADER_MACRO>();
 
-            macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
-            macros.Add(new D3D.SHADER_MACRO { Name = "_TERRAIN_HELPER_HLSLI", Definition = "1" });
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Blending>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Environment_Mapping>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Material>());
+            TemplateGenerator.TemplateGenerator.CreateGlobalMacros(macros, ShaderType.Terrain, entryPoint, Shared.Blend_Mode.Opaque, 
+                Shader.Misc.First_Person_Never, Shared.Alpha_Test.None, ApplyFixes);
 
-            Shared.Environment_Mapping sEnvironmentMapping = (Shared.Environment_Mapping)Enum.Parse(typeof(Shared.Environment_Mapping), environment_mapping.ToString());
-            if (environment_mapping == Environment_Mapping.Dynamic_Reach)
+
+            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", blending == Blending.Dynamic_Morph ? "dynamic" : blending.ToString()));
+            macros.Add(ShaderGeneratorBase.CreateMacro("envmap_type", environment_mapping));
+            macros.Add(ShaderGeneratorBase.CreateMacro("material_0_type", material_0));
+            macros.Add(ShaderGeneratorBase.CreateMacro("material_1_type", material_1));
+            macros.Add(ShaderGeneratorBase.CreateMacro("material_2_type", material_2));
+            macros.Add(ShaderGeneratorBase.CreateMacro("material_3_type", material_3));
+
+            string entryName = entryPoint.ToString().ToLower() + "_ps";
+            switch (entryPoint)
             {
-                sEnvironmentMapping = Shared.Environment_Mapping.Dynamic;
-                macros.Add(ShaderGeneratorBase.CreateMacro("REACH_ENV_DYNAMIC", 1));
+                case ShaderStage.Static_Prt_Linear:
+                case ShaderStage.Static_Prt_Quadratic:
+                case ShaderStage.Static_Prt_Ambient:
+                    entryName = "static_prt_ps";
+                    break;
+                case ShaderStage.Dynamic_Light_Cinematic:
+                    entryName = "dynamic_light_cine_ps";
+                    break;
             }
 
-            //
-            // Convert to shared enum
-            //
+            macros.Add(ShaderGeneratorBase.CreateMacro("TERRAIN_COMPILE_HACK", "1"));
 
-            Material sMaterial1 = (Material)Enum.Parse(typeof(Material), material_1.ToString());
-            Material sMaterial2 = (Material)Enum.Parse(typeof(Material), material_2.ToString());
-            Material sMaterial3 = (Material)Enum.Parse(typeof(Material), material_3.ToString());
-
-            //
-            // The following code properly names the macros (like in rmdf)
-            //
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type", blending));
-            macros.Add(ShaderGeneratorBase.CreateMacro("envmap_type", sEnvironmentMapping, "envmap_type_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("shaderstage", entryPoint, "k_shaderstage_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("shadertype", Shared.ShaderType.Terrain, "k_shadertype_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("blend_type_arg", blending, "k_blend_type_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("envmap_type_arg", sEnvironmentMapping, "k_environment_mapping_"));
-
-            macros.Add(ShaderGeneratorBase.CreateMacro("material_type_0_arg", material_0, "k_material_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("material_type_1_arg", sMaterial1, "k_material_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("material_type_2_arg", sMaterial2, "k_material_"));
-            macros.Add(ShaderGeneratorBase.CreateMacro("material_type_3_arg", sMaterial3, "k_material_"));
-
-            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"pixl_terrain.hlsl", macros, "entry_" + entryPoint.ToString().ToLower(), "ps_3_0");
+            byte[] shaderBytecode = ShaderGeneratorBase.GenerateSource($"terrain.fx", macros, entryName, "ps_3_0");
 
             return new ShaderGeneratorResult(shaderBytecode);
         }
@@ -223,7 +208,7 @@ namespace HaloShaderGenerator.Terrain
                 case ShaderStage.Default:
                 case ShaderStage.Z_Only:
                 case ShaderStage.Water_Shading:
-                case ShaderStage.Water_Tesselation:
+                case ShaderStage.Water_Tessellation:
                 case ShaderStage.Shadow_Apply:
                 case ShaderStage.Static_Default:
                 case ShaderStage.Static_Per_Vertex_Color:

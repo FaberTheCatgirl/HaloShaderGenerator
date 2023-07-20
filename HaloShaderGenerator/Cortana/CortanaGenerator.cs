@@ -548,7 +548,7 @@ namespace HaloShaderGenerator.Cortana
                         result.AddSamplerParameter("scanline_map");
                         result.AddFloatParameter("scanline_amount_opaque");
                         result.AddFloatParameter("scanline_amount_transparent");
-                        result.AddFloat4Parameter("ss_constants", RenderMethodExtern.screen_constants);
+                        result.AddFloat4Parameter("screen_constants", RenderMethodExtern.screen_constants);
                         rmopName = @"shaders\shader_options\cortana_screenspace";
                         break;
                 }
@@ -566,7 +566,6 @@ namespace HaloShaderGenerator.Cortana
                         result.AddSamplerVertexParameter("fade_noise_map");
                         result.AddFloatVertexParameter("fade_offset");
                         result.AddFloatParameter("warp_fade_offset");
-                        result.AddFloat4VertexParameter("screen_constants", RenderMethodExtern.screen_constants);
                         rmopName = @"shaders\shader_options\cortana_transparency";
                         break;
                 }
