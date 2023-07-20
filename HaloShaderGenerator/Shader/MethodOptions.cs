@@ -20,7 +20,8 @@ namespace HaloShaderGenerator.Shader
         Misc,
         Misc_Attr_Animation,
         Distortion,
-        Soft_Fade
+        Soft_Fade,
+        Wetness
     }
 
     public enum Albedo
