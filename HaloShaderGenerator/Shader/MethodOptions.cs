@@ -164,9 +164,23 @@ namespace HaloShaderGenerator.Shader
         Scrolling_Projected
     }
 
-    public enum DistortionOptions
+    public enum Distortion
     {
         Off,
         On
+    }
+
+    public enum Soft_Fade
+    {
+        Off,
+        On
+    }
+
+    public enum Wetness
+    {
+        flood,
+        proof,
+        simple,
+        ripples
     }
 }

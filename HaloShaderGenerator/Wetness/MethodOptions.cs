@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HaloShaderGenerator.Wetness
+namespace HaloShaderGenerator.WetnessOptions //Add Temp Option to apease compiler for now
 {
     public enum WetnessMethods
     {

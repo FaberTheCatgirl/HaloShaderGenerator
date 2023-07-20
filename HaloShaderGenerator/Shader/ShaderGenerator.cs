@@ -25,6 +25,7 @@ namespace HaloShaderGenerator.Shader
         Misc_Attr_Animation misc_attr_animation;
         Shared.Distortion distortion;
         Shared.Soft_Fade soft_fade;
+        Wetness wetness;
 
         /// <summary>
         /// Generator insantiation for shared shaders. Does not require method options.
@@ -36,7 +37,7 @@ namespace HaloShaderGenerator.Shader
         /// </summary>
         public ShaderGenerator(Albedo albedo, Bump_Mapping bump_mapping, Alpha_Test alpha_test, Specular_Mask specular_mask, Material_Model material_model,
             Environment_Mapping environment_mapping, Self_Illumination self_illumination, Blend_Mode blend_mode, Parallax parallax, Misc misc,
-            Shared.Distortion distortion, Shared.Soft_Fade soft_fade, Misc_Attr_Animation misc_attr_animation, bool applyFixes = false)
+            Shared.Distortion distortion, Shared.Soft_Fade soft_fade, Misc_Attr_Animation misc_attr_animation, Wetness wetness, bool applyFixes = false)
         {
             this.albedo = albedo;
             this.bump_mapping = bump_mapping;
@@ -51,6 +52,7 @@ namespace HaloShaderGenerator.Shader
             this.misc_attr_animation = misc_attr_animation;
             this.distortion = distortion;
             this.soft_fade = soft_fade;
+            this.wetness = wetness;
 
             ApplyFixes = applyFixes;
             TemplateGenerationValid = true;
@@ -73,6 +75,7 @@ namespace HaloShaderGenerator.Shader
             this.misc_attr_animation = (Misc_Attr_Animation)options[10];
             this.distortion = (Shared.Distortion)options[11];
             this.soft_fade = (Shared.Soft_Fade)options[12];
+            this.wetness = (Wetness)options[13];
 
             ApplyFixes = applyFixes;
             TemplateGenerationValid = true;
@@ -89,20 +92,21 @@ namespace HaloShaderGenerator.Shader
 
             macros.Add(new D3D.SHADER_MACRO { Name = "_DEFINITION_HELPER_HLSLI", Definition = "1" });
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Albedo>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderType>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Albedo>());
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Bump_Mapping>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Alpha_Test>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Alpha_Test>());
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Specular_Mask>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Material_Model>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Environment_Mapping>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Self_Illumination>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Blend_Mode>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Material_Model>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Environment_Mapping>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Self_Illumination>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Blend_Mode>());
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Parallax>());
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Misc>());
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Misc_Attr_Animation>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Distortion>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.Soft_Fade>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Distortion>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Soft_Fade>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Wetness>());
 
             macros.Add(ShaderGeneratorBase.CreateMacro("APPLY_HLSL_FIXES", ApplyFixes ? 1 : 0));
 
@@ -132,6 +136,8 @@ namespace HaloShaderGenerator.Shader
             var sAlphaTest = Enum.Parse(typeof(Shared.Alpha_Test), alpha_test.ToString());
             var sSelfIllumination = Enum.Parse(typeof(Shared.Self_Illumination), self_illumination.ToString());
             var sBlendMode = Enum.Parse(typeof(Shared.Blend_Mode), blend_mode.ToString());
+            var sParallax = Enum.Parse(typeof(Shared.Parallax), parallax.ToString());
+            var sWetness = Enum.Parse(typeof(Shared.Wetness), wetness.ToString());
 
             //
             // The following code properly names the macros (like in rmdf)
@@ -230,7 +236,7 @@ namespace HaloShaderGenerator.Shader
             macros.Add(new D3D.SHADER_MACRO { Name = "_VERTEX_SHADER_HELPER_HLSLI", Definition = "1" });
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderStage>());
             macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<VertexType>());
-            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<Shared.ShaderType>());
+            macros.AddRange(ShaderGeneratorBase.CreateMethodEnumDefinitions<ShaderType>());
             macros.Add(ShaderGeneratorBase.CreateMacro("calc_vertex_transform", vertexType, "calc_vertex_transform_", ""));
             macros.Add(ShaderGeneratorBase.CreateMacro("transform_dominant_light", vertexType, "transform_dominant_light_", ""));
             macros.Add(ShaderGeneratorBase.CreateMacro("calc_distortion", vertexType, "calc_distortion_", ""));
@@ -284,9 +290,11 @@ namespace HaloShaderGenerator.Shader
                 case ShaderMethods.Misc_Attr_Animation:
                     return Enum.GetValues(typeof(Misc_Attr_Animation)).Length;
                 case ShaderMethods.Distortion:
-                    return Enum.GetValues(typeof(Shared.Distortion)).Length; //Soft Fade and Distortion need to be shared... why?
+                    return Enum.GetValues(typeof(Distortion)).Length; 
                 case ShaderMethods.Soft_Fade:
-                    return Enum.GetValues(typeof(Shared.Soft_Fade)).Length;
+                    return Enum.GetValues(typeof(Soft_Fade)).Length;
+                case ShaderMethods.Wetness:
+                    return Enum.GetValues(typeof(Wetness)).Length;
             }
             return -1;
         }
@@ -321,6 +329,8 @@ namespace HaloShaderGenerator.Shader
                     return (int)soft_fade;
                 case ShaderMethods.Misc_Attr_Animation:
                     return (int)misc_attr_animation;
+                case ShaderMethods.Wetness:
+                    return (int)wetness;
             }
             return -1;
         }
@@ -1111,8 +1121,8 @@ namespace HaloShaderGenerator.Shader
                 case Shared.Distortion.On:
                     result.AddSamplerParameter("distort_map");
                     result.AddFloatParameter("distort_scale");
-                    //result.AddFloatParameter("distort_fadeoff");
-                    //result.AddBooleanParameter("distort_selfonly");
+                    result.AddFloatParameter("distort_fadeoff");
+                    result.AddBooleanParameter("distort_selfonly");
                     break;
             }
 
@@ -1123,6 +1133,14 @@ namespace HaloShaderGenerator.Shader
                     result.AddFloatParameter("soft_fresnel_power");
                     result.AddBooleanParameter("soft_z_enabled");
                     result.AddFloatParameter("soft_z_range");
+                    break;
+            }
+
+            switch (wetness)
+            {
+                case Wetness.flood:
+                    result.AddFloatParameter("wet_material_dim_coefficient");
+                    result.AddFloat4Parameter("wet_material_dim_tint", RenderMethodExtern.object_change_color_primary);
                     break;
             }
 
@@ -1336,32 +1354,32 @@ namespace HaloShaderGenerator.Shader
                         result.AddSamplerWithoutXFormParameter("emblem_map", RenderMethodExtern.emblem_player_shoulder_texture);
                         rmopName = @"shaders\shader_options\albedo_emblem";
                         break;
-                        //case Albedo.Scrolling_Cube_Mask:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerParameter("detail_map");
-                        //    result.AddFloat4Parameter("albedo_color");
-                        //    result.AddSamplerWithoutXFormParameter("color_blend_mask_cubemap");
-                        //    result.AddFloat4Parameter("albedo_second_color");
-                        //    rmopName = @"shaders\shader_options\albedo_scrolling_cube_mask";
-                        //    break;
-                        //case Albedo.Scrolling_Cube:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerParameter("detail_map");
-                        //    result.AddSamplerWithoutXFormParameter("color_cubemap");
-                        //    rmopName = @"shaders\shader_options\albedo_scrolling_cube";
-                        //    break;
-                        //case Albedo.Scrolling_Texture_Uv:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerWithoutXFormParameter("color_texture");
-                        //    result.AddFloatParameter("u_speed");
-                        //    result.AddFloatParameter("v_speed");
-                        //    rmopName = @"shaders\shader_options\albedo_scrolling_texture_uv";
-                        //    break;
-                        //case Albedo.Texture_From_Misc:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerWithoutXFormParameter("color_texture");
-                        //    rmopName = @"shaders\shader_options\albedo_texture_from_misc";
-                        //    break;
+                    case Albedo.Scrolling_Cube_Mask:
+                        result.AddSamplerParameter("base_map");
+                        result.AddSamplerParameter("detail_map");
+                        result.AddFloat4Parameter("albedo_color");
+                        result.AddSamplerWithoutXFormParameter("color_blend_mask_cubemap");
+                        result.AddFloat4Parameter("albedo_second_color");
+                        rmopName = @"shaders\shader_options\albedo_scrolling_cube_mask";
+                        break;
+                    case Albedo.Scrolling_Cube:
+                        result.AddSamplerParameter("base_map");
+                        result.AddSamplerParameter("detail_map");
+                        result.AddSamplerWithoutXFormParameter("color_cubemap");
+                        rmopName = @"shaders\shader_options\albedo_scrolling_cube";
+                        break;
+                    case Albedo.Scrolling_Texture_Uv:
+                            result.AddSamplerParameter("base_map");
+                            result.AddSamplerWithoutXFormParameter("color_texture");
+                            result.AddFloatParameter("u_speed");
+                            result.AddFloatParameter("v_speed");
+                            rmopName = @"shaders\shader_options\albedo_scrolling_texture_uv";
+                            break;
+                    case Albedo.Texture_From_Misc:
+                            result.AddSamplerParameter("base_map");
+                            result.AddSamplerWithoutXFormParameter("color_texture");
+                            rmopName = @"shaders\shader_options\albedo_texture_from_misc";
+                            break;
                 }
             }
             if (methodName == "bump_mapping")
@@ -1774,8 +1792,8 @@ namespace HaloShaderGenerator.Shader
                     case Shared.Distortion.On:
                         result.AddSamplerParameter("distort_map");
                         result.AddFloatParameter("distort_scale");
-                        //result.AddFloatParameter("distort_fadeoff");
-                        //result.AddBooleanParameter("distort_selfonly");
+                        result.AddFloatParameter("distort_fadeoff");
+                        result.AddBooleanParameter("distort_selfonly");
                         rmopName = @"shaders\shader_options\sfx_distort";
                         break;
                 }
@@ -1794,6 +1812,10 @@ namespace HaloShaderGenerator.Shader
                         rmopName = @"shaders\shader_options\soft_fade";
                         break;
                 }
+            }
+            if (methodName == "wetness")
+            {
+                optionName = ((Wetness)option).ToString();
             }
 
             return result;
@@ -1832,6 +1854,8 @@ namespace HaloShaderGenerator.Shader
                     return Enum.GetValues(typeof(Shared.Distortion));
                 case ShaderMethods.Soft_Fade:
                     return Enum.GetValues(typeof(Shared.Soft_Fade));
+                case ShaderMethods.Wetness:
+                    return Enum.GetValues(typeof(Wetness));
             }
 
             return null;

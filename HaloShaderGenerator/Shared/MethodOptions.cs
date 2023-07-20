@@ -178,4 +178,24 @@ namespace HaloShaderGenerator.Shared
         Off,
         On
     }
+
+    public enum Parallax
+    { 
+        Off, 
+        On
+    }
+
+    public enum Misc
+    {
+        Off,
+        On
+    }
+
+    public enum Wetness
+    {
+        flood,
+        proof,
+        simple,
+        ripples
+    }
 }
