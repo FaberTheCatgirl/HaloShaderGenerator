@@ -18,8 +18,10 @@ namespace HaloShaderGenerator.Shader
         Blend_Mode,
         Parallax,
         Misc,
+        Misc_Attr_Animation,
         Distortion,
-        Soft_Fade
+        Soft_Fade,
+        Wetness
     }
 
     public enum Albedo
@@ -46,11 +48,10 @@ namespace HaloShaderGenerator.Shader
         Custom_Cube,
         Two_Color,
         Emblem,
-        // uncomment when misc_attr supported
-        //Scrolling_Cube_Mask,
-        //Scrolling_Cube,
-        //Scrolling_Texture_Uv,
-        //Texture_From_Misc,
+        Scrolling_Cube,
+        Scrolling_Texture_Uv,
+        Texture_From_Misc,
+        Scrolling_Cube_Mask
     }
 
     public enum Bump_Mapping
@@ -59,7 +60,8 @@ namespace HaloShaderGenerator.Shader
         Standard,
         Detail,
         Detail_Masked,
-        //Detail_Plus_Detail_Masked
+        Detail_Plus_Detail_Masked,
+        detail_plus_unorm
     }
 
     public enum Alpha_Test
@@ -81,6 +83,7 @@ namespace HaloShaderGenerator.Shader
         Diffuse_Only,
         Cook_Torrance,
         Two_Lobe_Phong,
+        Two_Lobe_Phong_Tint_Map,
         Foliage,
         None,
         Glass,
@@ -89,6 +92,14 @@ namespace HaloShaderGenerator.Shader
         Car_Paint,
         Hair,
         Cook_Torrance_Odst,
+        Cook_Torrance_Custom_Cube,
+        Cook_Torrance_Pbr_Maps,
+        Cook_Torrance_Two_Color_Spec_Tint,
+        Cook_Torrance_Scrolling_Cube,
+        Cook_Torrance_Scrolling_Cube_Mask,
+        Cook_Torrance_Rim_Fresnel,
+        Cook_Torrance_From_Albedo,
+        Constant
     }
 
     public enum Environment_Mapping
@@ -97,6 +108,7 @@ namespace HaloShaderGenerator.Shader
         Per_Pixel,
         Dynamic,
         From_Flat_Texture,
+        From_Flat_Texture_As_Cubemap,
         Custom_Map,
         Dynamic_Reach
     }
@@ -113,7 +125,7 @@ namespace HaloShaderGenerator.Shader
         Self_Illum_Times_Diffuse,
         Simple_With_Alpha_Mask,
         Simple_Four_Change_Color,
-        //Illum_Detail_World_Space_Four_Cc
+        Illum_Detail_World_Space_Four_Cc,
         Illum_Change_Color,
         Multilayer_Additive,
         Palettized_Plasma,
@@ -145,5 +157,31 @@ namespace HaloShaderGenerator.Shader
         First_Person_Always,
         First_Person_Never_With_rotating_Bitmaps,
         Always_Calc_Albedo
+    }
+    public enum Misc_Attr_Animation
+    {
+        Off,
+        Scrolling_Cube,
+        Scrolling_Projected
+    }
+
+    public enum Distortion
+    {
+        Off,
+        On
+    }
+
+    public enum Soft_Fade
+    {
+        Off,
+        On
+    }
+
+    public enum Wetness
+    {
+        flood,
+        proof,
+        simple,
+        ripples
     }
 }

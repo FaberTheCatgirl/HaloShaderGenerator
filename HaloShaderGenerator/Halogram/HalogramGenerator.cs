@@ -585,8 +585,8 @@ namespace HaloShaderGenerator.Halogram
                 case Shared.Distortion.On:
                     result.AddSamplerParameter("distort_map");
                     result.AddFloatParameter("distort_scale");
-                    //result.AddFloatParameter("distort_fadeoff");
-                    //result.AddBooleanParameter("distort_selfonly");
+                    result.AddFloatParameter("distort_fadeoff");
+                    result.AddBooleanParameter("distort_selfonly");
                     break;
             }
 
@@ -936,8 +936,8 @@ namespace HaloShaderGenerator.Halogram
                     case Shared.Distortion.On:
                         result.AddSamplerParameter("distort_map");
                         result.AddFloatParameter("distort_scale");
-                        //result.AddFloatParameter("distort_fadeoff");
-                        //result.AddBooleanParameter("distort_selfonly");
+                        result.AddFloatParameter("distort_fadeoff");
+                        result.AddBooleanParameter("distort_selfonly");
                         rmopName = @"shaders\shader_options\sfx_distort";
                         break;
                 }

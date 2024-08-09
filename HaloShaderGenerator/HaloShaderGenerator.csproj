@@ -158,6 +158,7 @@
     <Compile Include="TemplateGenerator\TemplateGenerator.cs" />
     <Compile Include="Water\MethodOptions.cs" />
     <Compile Include="Water\WaterGenerator.cs" />
+    <Compile Include="Wetness\MethodOptions.cs" />
     <Compile Include="ZOnly\MethodOptions.cs" />
     <Compile Include="ZOnly\ZOnlyGenerator.cs" />
     <Compile Include="Halogram\HalogramGenerator.cs" />

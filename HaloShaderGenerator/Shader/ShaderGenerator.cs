@@ -23,8 +23,10 @@ namespace HaloShaderGenerator.Shader
         Blend_Mode blend_mode;
         Parallax parallax;
         Misc misc;
+        Misc_Attr_Animation misc_attr_animation;
         Shared.Distortion distortion;
         Shared.Soft_Fade soft_fade;
+        Wetness wetness;
 
         /// <summary>
         /// Generator insantiation for shared shaders. Does not require method options.
@@ -36,7 +38,7 @@ namespace HaloShaderGenerator.Shader
         /// </summary>
         public ShaderGenerator(Albedo albedo, Bump_Mapping bump_mapping, Alpha_Test alpha_test, Specular_Mask specular_mask, Material_Model material_model,
             Environment_Mapping environment_mapping, Self_Illumination self_illumination, Blend_Mode blend_mode, Parallax parallax, Misc misc,
-            Shared.Distortion distortion, Shared.Soft_Fade soft_fade, bool applyFixes = false)
+            Shared.Distortion distortion, Shared.Soft_Fade soft_fade, Misc_Attr_Animation misc_attr_animation, Wetness wetness, bool applyFixes = false)
         {
             this.albedo = albedo;
             this.bump_mapping = bump_mapping;
@@ -48,8 +50,10 @@ namespace HaloShaderGenerator.Shader
             this.blend_mode = blend_mode;
             this.parallax = parallax;
             this.misc = misc;
+            this.misc_attr_animation = misc_attr_animation;
             this.distortion = distortion;
             this.soft_fade = soft_fade;
+            this.wetness = wetness;
 
             ApplyFixes = applyFixes;
             TemplateGenerationValid = true;
@@ -69,8 +73,10 @@ namespace HaloShaderGenerator.Shader
             this.blend_mode = (Blend_Mode)options[7];
             this.parallax = (Parallax)options[8];
             this.misc = (Misc)options[9];
-            this.distortion = (Shared.Distortion)options[10];
-            this.soft_fade = (Shared.Soft_Fade)options[11];
+            this.misc_attr_animation = (Misc_Attr_Animation)options[10];
+            this.distortion = (Shared.Distortion)options[11];
+            this.soft_fade = (Shared.Soft_Fade)options[12];
+            this.wetness = (Wetness)options[13];
 
             ApplyFixes = applyFixes;
             TemplateGenerationValid = true;
@@ -345,10 +351,14 @@ namespace HaloShaderGenerator.Shader
                     return Enum.GetValues(typeof(Parallax)).Length;
                 case ShaderMethods.Misc:
                     return Enum.GetValues(typeof(Misc)).Length;
+                case ShaderMethods.Misc_Attr_Animation:
+                    return Enum.GetValues(typeof(Misc_Attr_Animation)).Length;
                 case ShaderMethods.Distortion:
-                    return Enum.GetValues(typeof(Shared.Distortion)).Length;
+                    return Enum.GetValues(typeof(Distortion)).Length; 
                 case ShaderMethods.Soft_Fade:
-                    return Enum.GetValues(typeof(Shared.Soft_Fade)).Length;
+                    return Enum.GetValues(typeof(Soft_Fade)).Length;
+                case ShaderMethods.Wetness:
+                    return Enum.GetValues(typeof(Wetness)).Length;
             }
             return -1;
         }
@@ -381,6 +391,10 @@ namespace HaloShaderGenerator.Shader
                     return (int)distortion;
                 case ShaderMethods.Soft_Fade:
                     return (int)soft_fade;
+                case ShaderMethods.Misc_Attr_Animation:
+                    return (int)misc_attr_animation;
+                case ShaderMethods.Wetness:
+                    return (int)wetness;
             }
             return -1;
         }
@@ -474,7 +488,15 @@ namespace HaloShaderGenerator.Shader
                     result.AddFloat4ColorParameter("albedo_color");
                     break;
                 case Albedo.Two_Detail_Black_Point:
+                    result.AddSamplerParameter("base_map");
+                    result.AddSamplerParameter("detail_map");
+                    result.AddSamplerParameter("detail_map2");
+                    break;
                 case Albedo.Two_Detail:
+                    result.AddSamplerParameter("base_map");
+                    result.AddSamplerParameter("detail_map");
+                    result.AddSamplerParameter("detail_map2");
+                    break;
                 case Albedo.Detail_Blend:
                     result.AddSamplerParameter("base_map");
                     result.AddSamplerParameter("detail_map");
@@ -613,28 +635,29 @@ namespace HaloShaderGenerator.Shader
                 case Albedo.Emblem:
                     result.AddSamplerWithoutXFormParameter("emblem_map", RenderMethodExtern.emblem_player_shoulder_texture);
                     break;
-                    //case Albedo.Scrolling_Cube_Mask:
-                    //    result.AddSamplerParameter("base_map");
-                    //    result.AddSamplerParameter("detail_map");
-                    //    result.AddFloat4Parameter("albedo_color");
-                    //    result.AddSamplerWithoutXFormParameter("color_blend_mask_cubemap");
-                    //    result.AddFloat4Parameter("albedo_second_color");
-                    //    break;
-                    //case Albedo.Scrolling_Cube:
-                    //    result.AddSamplerParameter("base_map");
-                    //    result.AddSamplerParameter("detail_map");
-                    //    result.AddSamplerWithoutXFormParameter("color_cubemap");
-                    //    break;
-                    //case Albedo.Scrolling_Texture_Uv:
-                    //    result.AddSamplerParameter("base_map");
-                    //    result.AddSamplerWithoutXFormParameter("color_texture");
-                    //    result.AddFloatParameter("u_speed");
-                    //    result.AddFloatParameter("v_speed");
-                    //    break;
-                    //case Albedo.Texture_From_Misc:
-                    //    result.AddSamplerParameter("base_map");
-                    //    result.AddSamplerWithoutXFormParameter("color_texture");
-                    //    break;
+                case Albedo.Scrolling_Cube_Mask:
+                    result.AddSamplerParameter("base_map");
+                    result.AddSamplerParameter("detail_map");
+                    result.AddFloat4Parameter("albedo_color");
+                    result.AddSamplerWithoutXFormParameter("color_blend_mask_cubemap");
+                    result.AddFloat4Parameter("albedo_second_color");
+                    break;
+                case Albedo.Scrolling_Cube:
+                    result.AddSamplerParameter("base_map");
+                    result.AddSamplerParameter("detail_map");
+                    result.AddSamplerWithoutXFormParameter("color_cubemap");
+                    break;
+                case Albedo.Scrolling_Texture_Uv:
+                    result.AddSamplerParameter("base_map");
+                    result.AddSamplerWithoutXFormParameter("color_texture");
+                    result.AddFloatParameter("u_speed");
+                    result.AddFloatParameter("v_speed");
+                    break;
+                case Albedo.Texture_From_Misc:
+                    result.AddSamplerParameter("base_map");
+                    result.AddSamplerWithoutXFormParameter("color_texture");
+                    break;
+                
             }
 
             switch (bump_mapping)
@@ -684,7 +707,7 @@ namespace HaloShaderGenerator.Shader
                 case Material_Model.Diffuse_Only:
                     result.AddBooleanParameter("no_dynamic_lights");
                     break;
-                case Material_Model.Cook_Torrance_Odst:
+                case Material_Model.Cook_Torrance_Odst: //Nothing is defined... Why is this here?
                 case Material_Model.Cook_Torrance:
                     result.AddFloatParameter("diffuse_coefficient");
                     result.AddFloatParameter("specular_coefficient");
@@ -711,6 +734,201 @@ namespace HaloShaderGenerator.Shader
                     result.AddFloat3ColorParameter("rim_fresnel_color");
                     result.AddFloatParameter("rim_fresnel_power");
                     result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    break;
+                case Material_Model.Cook_Torrance_From_Albedo:
+                    result.AddFloatParameter("diffuse_coefficient");
+                    result.AddFloatParameter("specular_coefficient");
+                    result.AddFloat3ColorParameter("specular_tint");
+                    result.AddFloat3ColorParameter("fresnel_color");
+                    result.AddFloatParameter("use_fresnel_color_environment");
+                    result.AddFloat3ColorParameter("fresnel_color_environment");
+                    result.AddFloatParameter("fresnel_power");
+                    result.AddFloatParameter("roughness");
+                    result.AddFloatParameter("area_specular_contribution");
+                    result.AddFloatParameter("analytical_specular_contribution");
+                    result.AddFloatParameter("environment_map_specular_contribution");
+                    result.AddBooleanParameter("order3_area_specular");
+                    result.AddBooleanParameter("use_material_texture");
+                    result.AddSamplerParameter("material_texture");
+                    result.AddBooleanParameter("no_dynamic_lights");
+                    result.AddSamplerWithoutXFormParameter("g_sampler_cc0236", RenderMethodExtern.texture_cook_torrance_cc0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_dd0236", RenderMethodExtern.texture_cook_torrance_dd0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_c78d78", RenderMethodExtern.texture_cook_torrance_c78d78);
+                    result.AddFloatParameter("albedo_blend_with_specular_tint");
+                    result.AddFloatParameter("albedo_blend");
+                    result.AddFloatParameter("analytical_anti_shadow_control");
+                    result.AddFloatParameter("rim_fresnel_coefficient");
+                    result.AddFloat3ColorParameter("rim_fresnel_color");
+                    result.AddFloatParameter("rim_fresnel_power");
+                    result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    break;
+                case Material_Model.Cook_Torrance_Rim_Fresnel: //Pedro Defined normal Cook_Torrance with Rim Fresnel + From Albedo, Why?
+                    result.AddFloatParameter("diffuse_coefficient");
+                    result.AddFloatParameter("specular_coefficient");
+                    result.AddFloat3ColorParameter("specular_tint");
+                    result.AddFloat3ColorParameter("fresnel_color");
+                    result.AddFloatParameter("use_fresnel_color_environment");
+                    result.AddFloat3ColorParameter("fresnel_color_environment");
+                    result.AddFloatParameter("fresnel_power");
+                    result.AddFloatParameter("roughness");
+                    result.AddFloatParameter("area_specular_contribution");
+                    result.AddFloatParameter("analytical_specular_contribution");
+                    result.AddFloatParameter("environment_map_specular_contribution");
+                    result.AddBooleanParameter("order3_area_specular");
+                    result.AddBooleanParameter("use_material_texture");
+                    result.AddSamplerParameter("material_texture");
+                    result.AddBooleanParameter("no_dynamic_lights");
+                    result.AddSamplerWithoutXFormParameter("g_sampler_cc0236", RenderMethodExtern.texture_cook_torrance_cc0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_dd0236", RenderMethodExtern.texture_cook_torrance_dd0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_c78d78", RenderMethodExtern.texture_cook_torrance_c78d78);
+                    result.AddFloatParameter("albedo_blend_with_specular_tint");
+                    result.AddFloatParameter("albedo_blend");
+                    result.AddFloatParameter("analytical_anti_shadow_control");
+                    result.AddFloatParameter("rim_fresnel_coefficient");
+                    result.AddFloat3ColorParameter("rim_fresnel_color");
+                    result.AddFloatParameter("rim_fresnel_power");
+                    result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    break;
+                case Material_Model.Cook_Torrance_Two_Color_Spec_Tint:
+                    result.AddFloatParameter("diffuse_coefficient");
+                    result.AddFloatParameter("specular_coefficient");
+                    result.AddFloat3ColorParameter("specular_tint");
+                    result.AddFloat3ColorParameter("fresnel_color");
+                    result.AddFloatParameter("use_fresnel_color_environment");
+                    result.AddFloat3ColorParameter("fresnel_color_environment");
+                    result.AddFloatParameter("fresnel_power");
+                    result.AddFloatParameter("roughness");
+                    result.AddFloatParameter("area_specular_contribution");
+                    result.AddFloatParameter("analytical_specular_contribution");
+                    result.AddFloatParameter("environment_map_specular_contribution");
+                    result.AddBooleanParameter("order3_area_specular");
+                    result.AddBooleanParameter("use_material_texture");
+                    result.AddSamplerParameter("material_texture");
+                    result.AddBooleanParameter("no_dynamic_lights");
+                    result.AddSamplerWithoutXFormParameter("g_sampler_cc0236", RenderMethodExtern.texture_cook_torrance_cc0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_dd0236", RenderMethodExtern.texture_cook_torrance_dd0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_c78d78", RenderMethodExtern.texture_cook_torrance_c78d78);
+                    result.AddFloatParameter("albedo_blend_with_specular_tint");
+                    result.AddFloatParameter("albedo_blend");
+                    result.AddFloatParameter("analytical_anti_shadow_control");
+                    result.AddFloatParameter("rim_fresnel_coefficient");
+                    result.AddFloat3ColorParameter("rim_fresnel_color");
+                    result.AddFloatParameter("rim_fresnel_power");
+                    result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    result.AddFloat3ColorParameter("specular_second_tint");
+                    break;
+                case Material_Model.Cook_Torrance_Scrolling_Cube:
+                    result.AddFloatParameter("diffuse_coefficient");
+                    result.AddFloatParameter("specular_coefficient");
+                    result.AddFloat3ColorParameter("specular_tint");
+                    result.AddFloat3ColorParameter("fresnel_color");
+                    result.AddFloatParameter("use_fresnel_color_environment");
+                    result.AddFloat3ColorParameter("fresnel_color_environment");
+                    result.AddFloatParameter("fresnel_power");
+                    result.AddFloatParameter("roughness");
+                    result.AddFloatParameter("area_specular_contribution");
+                    result.AddFloatParameter("analytical_specular_contribution");
+                    result.AddFloatParameter("environment_map_specular_contribution");
+                    result.AddBooleanParameter("order3_area_specular");
+                    result.AddBooleanParameter("use_material_texture");
+                    result.AddSamplerParameter("material_texture");
+                    result.AddBooleanParameter("no_dynamic_lights");
+                    result.AddSamplerWithoutXFormParameter("g_sampler_cc0236", RenderMethodExtern.texture_cook_torrance_cc0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_dd0236", RenderMethodExtern.texture_cook_torrance_dd0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_c78d78", RenderMethodExtern.texture_cook_torrance_c78d78);
+                    result.AddFloatParameter("albedo_blend_with_specular_tint");
+                    result.AddFloatParameter("albedo_blend");
+                    result.AddFloatParameter("analytical_anti_shadow_control");
+                    result.AddFloatParameter("rim_fresnel_coefficient");
+                    result.AddFloat3ColorParameter("rim_fresnel_color");
+                    result.AddFloatParameter("rim_fresnel_power");
+                    result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    result.AddSamplerParameter("spec_tint_cubemap");
+                    break;
+                case Material_Model.Cook_Torrance_Scrolling_Cube_Mask:
+                    result.AddFloatParameter("diffuse_coefficient");
+                    result.AddFloatParameter("specular_coefficient");
+                    result.AddFloat3ColorParameter("specular_tint");
+                    result.AddFloat3ColorParameter("fresnel_color");
+                    result.AddFloatParameter("use_fresnel_color_environment");
+                    result.AddFloat3ColorParameter("fresnel_color_environment");
+                    result.AddFloatParameter("fresnel_power");
+                    result.AddFloatParameter("roughness");
+                    result.AddFloatParameter("area_specular_contribution");
+                    result.AddFloatParameter("analytical_specular_contribution");
+                    result.AddFloatParameter("environment_map_specular_contribution");
+                    result.AddBooleanParameter("order3_area_specular");
+                    result.AddBooleanParameter("use_material_texture");
+                    result.AddSamplerParameter("material_texture");
+                    result.AddBooleanParameter("no_dynamic_lights");
+                    result.AddSamplerWithoutXFormParameter("g_sampler_cc0236", RenderMethodExtern.texture_cook_torrance_cc0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_dd0236", RenderMethodExtern.texture_cook_torrance_dd0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_c78d78", RenderMethodExtern.texture_cook_torrance_c78d78);
+                    result.AddFloatParameter("albedo_blend_with_specular_tint");
+                    result.AddFloatParameter("albedo_blend");
+                    result.AddFloatParameter("analytical_anti_shadow_control");
+                    result.AddFloatParameter("rim_fresnel_coefficient");
+                    result.AddFloat3ColorParameter("rim_fresnel_color");
+                    result.AddFloatParameter("rim_fresnel_power");
+                    result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    result.AddSamplerParameter("tint_blend_mask_cubemap");
+                    result.AddSamplerParameter("specular_second_tint");
+                    break;
+                case Material_Model.Cook_Torrance_Custom_Cube:
+                    result.AddFloatParameter("diffuse_coefficient");
+                    result.AddFloatParameter("specular_coefficient");
+                    result.AddFloat3ColorParameter("specular_tint");
+                    result.AddFloat3ColorParameter("fresnel_color");
+                    result.AddFloatParameter("use_fresnel_color_environment");
+                    result.AddFloat3ColorParameter("fresnel_color_environment");
+                    result.AddFloatParameter("fresnel_power");
+                    result.AddFloatParameter("roughness");
+                    result.AddFloatParameter("area_specular_contribution");
+                    result.AddFloatParameter("analytical_specular_contribution");
+                    result.AddFloatParameter("environment_map_specular_contribution");
+                    result.AddBooleanParameter("order3_area_specular");
+                    result.AddBooleanParameter("use_material_texture");
+                    result.AddSamplerParameter("material_texture");
+                    result.AddBooleanParameter("no_dynamic_lights");
+                    result.AddSamplerWithoutXFormParameter("g_sampler_cc0236", RenderMethodExtern.texture_cook_torrance_cc0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_dd0236", RenderMethodExtern.texture_cook_torrance_dd0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_c78d78", RenderMethodExtern.texture_cook_torrance_c78d78);
+                    result.AddFloatParameter("albedo_blend_with_specular_tint");
+                    result.AddFloatParameter("albedo_blend");
+                    result.AddFloatParameter("analytical_anti_shadow_control");
+                    result.AddFloatParameter("rim_fresnel_coefficient");
+                    result.AddFloat3ColorParameter("rim_fresnel_color");
+                    result.AddFloatParameter("rim_fresnel_power");
+                    result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    result.AddSamplerParameter("custom_cube_map");
+                    break;
+                case Material_Model.Cook_Torrance_Pbr_Maps:
+                    result.AddFloatParameter("diffuse_coefficient");
+                    result.AddFloatParameter("specular_coefficient");
+                    result.AddFloat3ColorParameter("specular_tint");
+                    result.AddFloat3ColorParameter("fresnel_color");
+                    result.AddFloatParameter("use_fresnel_color_environment");
+                    result.AddFloat3ColorParameter("fresnel_color_environment");
+                    result.AddFloatParameter("fresnel_power");
+                    result.AddFloatParameter("roughness");
+                    result.AddFloatParameter("area_specular_contribution");
+                    result.AddFloatParameter("analytical_specular_contribution");
+                    result.AddFloatParameter("environment_map_specular_contribution");
+                    result.AddBooleanParameter("order3_area_specular");
+                    result.AddBooleanParameter("use_material_texture");
+                    result.AddSamplerParameter("material_texture");
+                    result.AddBooleanParameter("no_dynamic_lights");
+                    result.AddSamplerWithoutXFormParameter("g_sampler_cc0236", RenderMethodExtern.texture_cook_torrance_cc0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_dd0236", RenderMethodExtern.texture_cook_torrance_dd0236);
+                    result.AddSamplerWithoutXFormParameter("g_sampler_c78d78", RenderMethodExtern.texture_cook_torrance_c78d78);
+                    result.AddFloatParameter("albedo_blend_with_specular_tint");
+                    result.AddFloatParameter("albedo_blend");
+                    result.AddFloatParameter("analytical_anti_shadow_control");
+                    result.AddFloatParameter("rim_fresnel_coefficient");
+                    result.AddFloat3ColorParameter("rim_fresnel_color");
+                    result.AddFloatParameter("rim_fresnel_power");
+                    result.AddFloatParameter("rim_fresnel_albedo_blend");
+                    result.AddSamplerParameter("spec_tint_map");
                     break;
                 case Material_Model.Two_Lobe_Phong:
                     result.AddFloatParameter("diffuse_coefficient");
@@ -792,7 +1010,8 @@ namespace HaloShaderGenerator.Shader
                     result.AddBooleanParameter("no_dynamic_lights");
                     break;
                 case Material_Model.Car_Paint:
-                    throw new System.Exception("Unsupported");
+                    result.AddFloatParameter("diffuse_coefficient"); // TODO: add parameters as this is placeholder
+                    break;
                 case Material_Model.Hair:
                     result.AddFloatParameter("diffuse_coefficient");
                     result.AddFloat3ColorParameter("diffuse_tint");
@@ -807,6 +1026,9 @@ namespace HaloShaderGenerator.Shader
                     result.AddFloat3ColorParameter("environment_map_tint");
                     result.AddFloat3ColorParameter("final_tint");
                     result.AddBooleanParameter("no_dynamic_lights");
+                    break;
+                case Material_Model.Constant:
+                    result.AddFloat3ColorParameter("albedo_color");
                     break;
             }
 
@@ -963,8 +1185,8 @@ namespace HaloShaderGenerator.Shader
                 case Shared.Distortion.On:
                     result.AddSamplerParameter("distort_map");
                     result.AddFloatParameter("distort_scale");
-                    //result.AddFloatParameter("distort_fadeoff");
-                    //result.AddBooleanParameter("distort_selfonly");
+                    result.AddFloatParameter("distort_fadeoff");
+                    result.AddBooleanParameter("distort_selfonly");
                     break;
             }
 
@@ -975,6 +1197,14 @@ namespace HaloShaderGenerator.Shader
                     result.AddFloatParameter("soft_fresnel_power");
                     result.AddBooleanParameter("soft_z_enabled");
                     result.AddFloatParameter("soft_z_range");
+                    break;
+            }
+
+            switch (wetness)
+            {
+                case Wetness.flood:
+                    result.AddFloatParameter("wet_material_dim_coefficient");
+                    result.AddFloat4Parameter("wet_material_dim_tint", RenderMethodExtern.object_change_color_primary);
                     break;
             }
 
@@ -1188,32 +1418,32 @@ namespace HaloShaderGenerator.Shader
                         result.AddSamplerWithoutXFormParameter("emblem_map", RenderMethodExtern.emblem_player_shoulder_texture);
                         rmopName = @"shaders\shader_options\albedo_emblem";
                         break;
-                        //case Albedo.Scrolling_Cube_Mask:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerParameter("detail_map");
-                        //    result.AddFloat4Parameter("albedo_color");
-                        //    result.AddSamplerWithoutXFormParameter("color_blend_mask_cubemap");
-                        //    result.AddFloat4Parameter("albedo_second_color");
-                        //    rmopName = @"shaders\shader_options\albedo_scrolling_cube_mask";
-                        //    break;
-                        //case Albedo.Scrolling_Cube:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerParameter("detail_map");
-                        //    result.AddSamplerWithoutXFormParameter("color_cubemap");
-                        //    rmopName = @"shaders\shader_options\albedo_scrolling_cube";
-                        //    break;
-                        //case Albedo.Scrolling_Texture_Uv:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerWithoutXFormParameter("color_texture");
-                        //    result.AddFloatParameter("u_speed");
-                        //    result.AddFloatParameter("v_speed");
-                        //    rmopName = @"shaders\shader_options\albedo_scrolling_texture_uv";
-                        //    break;
-                        //case Albedo.Texture_From_Misc:
-                        //    result.AddSamplerParameter("base_map");
-                        //    result.AddSamplerWithoutXFormParameter("color_texture");
-                        //    rmopName = @"shaders\shader_options\albedo_texture_from_misc";
-                        //    break;
+                    case Albedo.Scrolling_Cube_Mask:
+                        result.AddSamplerParameter("base_map");
+                        result.AddSamplerParameter("detail_map");
+                        result.AddFloat4Parameter("albedo_color");
+                        result.AddSamplerWithoutXFormParameter("color_blend_mask_cubemap");
+                        result.AddFloat4Parameter("albedo_second_color");
+                        rmopName = @"shaders\shader_options\albedo_scrolling_cube_mask";
+                        break;
+                    case Albedo.Scrolling_Cube:
+                        result.AddSamplerParameter("base_map");
+                        result.AddSamplerParameter("detail_map");
+                        result.AddSamplerWithoutXFormParameter("color_cubemap");
+                        rmopName = @"shaders\shader_options\albedo_scrolling_cube";
+                        break;
+                    case Albedo.Scrolling_Texture_Uv:
+                            result.AddSamplerParameter("base_map");
+                            result.AddSamplerWithoutXFormParameter("color_texture");
+                            result.AddFloatParameter("u_speed");
+                            result.AddFloatParameter("v_speed");
+                            rmopName = @"shaders\shader_options\albedo_scrolling_texture_uv";
+                            break;
+                    case Albedo.Texture_From_Misc:
+                            result.AddSamplerParameter("base_map");
+                            result.AddSamplerWithoutXFormParameter("color_texture");
+                            rmopName = @"shaders\shader_options\albedo_texture_from_misc";
+                            break;
                 }
             }
             if (methodName == "bump_mapping")
@@ -1626,8 +1856,8 @@ namespace HaloShaderGenerator.Shader
                     case Shared.Distortion.On:
                         result.AddSamplerParameter("distort_map");
                         result.AddFloatParameter("distort_scale");
-                        //result.AddFloatParameter("distort_fadeoff");
-                        //result.AddBooleanParameter("distort_selfonly");
+                        result.AddFloatParameter("distort_fadeoff");
+                        result.AddBooleanParameter("distort_selfonly");
                         rmopName = @"shaders\shader_options\sfx_distort";
                         break;
                 }
@@ -1646,6 +1876,10 @@ namespace HaloShaderGenerator.Shader
                         rmopName = @"shaders\shader_options\soft_fade";
                         break;
                 }
+            }
+            if (methodName == "wetness")
+            {
+                optionName = ((Wetness)option).ToString();
             }
 
             return result;
@@ -1684,6 +1918,8 @@ namespace HaloShaderGenerator.Shader
                     return Enum.GetValues(typeof(Shared.Distortion));
                 case ShaderMethods.Soft_Fade:
                     return Enum.GetValues(typeof(Shared.Soft_Fade));
+                case ShaderMethods.Wetness:
+                    return Enum.GetValues(typeof(Wetness));
             }
 
             return null;
